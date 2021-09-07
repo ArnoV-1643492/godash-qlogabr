@@ -22,6 +22,7 @@
 package http
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
@@ -47,8 +48,37 @@ import (
 	glob "github.com/uccmisl/godash/global"
 
 	"github.com/cavaliercoder/grab"
+	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/http3"
+	quiclogging "github.com/lucas-clemente/quic-go/logging"
+	"github.com/lucas-clemente/quic-go/qlog"
+
+	abrqlog "github.com/uccmisl/godash/qlog"
 )
+
+// *** Copied from "github.com/lucas-clemente/quic-go/internal/utils"
+
+type bufferedWriteCloser struct {
+	*bufio.Writer
+	io.Closer
+}
+
+// NewBufferedWriteCloser creates an io.WriteCloser from a bufio.Writer and an io.Closer
+func NewBufferedWriteCloser(writer *bufio.Writer, closer io.Closer) io.WriteCloser {
+	return &bufferedWriteCloser{
+		Writer: writer,
+		Closer: closer,
+	}
+}
+
+func (h bufferedWriteCloser) Close() error {
+	if err := h.Writer.Flush(); err != nil {
+		return err
+	}
+	return h.Closer.Close()
+}
+
+// ***
 
 // Noden consul node
 var Noden P2Pconsul.NodeUrl
@@ -58,17 +88,22 @@ func SetNoden(node P2Pconsul.NodeUrl) {
 	Noden = node
 }
 
+var client *http.Client = nil
+var tr *http.Transport
+var trQuic *http3.RoundTripper
+
 // getHTTPClient:
 func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBool bool) (*http.Transport, *http.Client, *http3.RoundTripper) {
 
-	var client *http.Client
+	if client != nil {
+		return tr, client, trQuic
+	}
+
 	var cert tls.Certificate
 	var caCertPool = x509.NewCertPool()
 	var caCert []byte
 	var config *tls.Config
 	var quicConfig *tls.Config
-	var tr *http.Transport
-	var trQuic *http3.RoundTripper
 
 	// if we are using the mininet testbed
 	if useTestbedBool {
@@ -104,6 +139,19 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 
 	// if we want to use quic
 	if quicBool {
+		qconf := quic.Config{}
+		//qconf.KeepAlive = true
+		qconf.Tracer = qlog.NewTracer(func(_ quiclogging.Perspective, connID []byte) io.WriteCloser {
+			filename := fmt.Sprintf("logs/client_%x.qlog", connID)
+			//filename := "logs/client.qlog"
+			f, err := os.Create(filename)
+			//f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("Creating qlog file %s.\n", filename)
+			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
+		})
 		// if we are not using the terstbed
 		if !useTestbedBool {
 			trQuic = &http3.RoundTripper{
@@ -131,7 +179,7 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 			// set up our http transport
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "creating our http transport using our tls config for quic")
 
-			trQuic = &http3.RoundTripper{TLSClientConfig: quicConfig}
+			trQuic = &http3.RoundTripper{TLSClientConfig: quicConfig, QuicConfig: &qconf}
 			// set up the client
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "creating our client using our http transport and our tls config for quic")
 			client = &http.Client{Transport: trQuic}
@@ -295,6 +343,9 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	// get rtt
 	end := time.Now()
 	rtt := end.Sub(start)
+
+	abrqlog.MainTracer.RTT.UpdateRTT(rtt, end)
+	abrqlog.MainTracer.UpdatedMetrics(abrqlog.MainTracer.RTT)
 
 	if err != nil {
 		fmt.Println(err)
@@ -467,6 +518,12 @@ func GetURLByteRangeBody(url string, startRange int, endRange int) (io.ReadClose
 // * return the content of the body of the url
 func GetURL(url string, isByteRangeMPD bool, startRange int, endRange int, quicBool bool, debugFile string, debugLog bool, useTestbedBool bool) ([]byte, time.Duration, string) {
 
+	byteRangeString := ""
+	if startRange != endRange {
+		byteRangeString = fmt.Sprint(startRange) + "-" + fmt.Sprint(endRange)
+	}
+	abrqlog.MainTracer.Request(abrqlog.MediaTypeOther, url, byteRangeString)
+
 	// get the response body and rtt for this url
 	responseBody, rtt, protocol, _ := getURLBody(url, isByteRangeMPD, startRange, endRange, quicBool, debugFile, debugLog, useTestbedBool, false)
 
@@ -490,6 +547,10 @@ func GetURL(url string, isByteRangeMPD bool, startRange int, endRange int, quicB
 // * get BaseURL for byte-range MPD
 func GetRepresentationBaseURL(mpd MPD, currentMPDRepAdaptSet int) string {
 	return mpd.Periods[0].AdaptationSet[currentMPDRepAdaptSet].Representation[0].BaseURL
+}
+
+func GetRepresentationMimeType(mpd MPD, currentMPDRepAdaptSet int) string {
+	return mpd.Periods[0].AdaptationSet[currentMPDRepAdaptSet].Representation[0].MimeType
 }
 
 // JoinURL :
@@ -523,7 +584,7 @@ func JoinURL(baseURL string, append string, debugLog bool) string {
  */
 func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteRangeMPD bool, startRange int, endRange int,
 	segmentNumber int, segmentDuration int, addSegDuration bool, quicBool bool, debugFile string, debugLog bool,
-	useTestbedBool bool, repRate int, saveFilesBool bool, AudioByteRange bool, profile string) (time.Duration, int, string, string, float64) {
+	useTestbedBool bool, repRate int, saveFilesBool bool, AudioByteRange bool, profile string, mediaType abrqlog.MediaType) (time.Duration, int, string, string, float64) {
 
 	// create the string where we want to save this file
 	var createFile string
@@ -555,6 +616,12 @@ func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteR
 	} else {
 		createFile = fileLocation + "/" + base
 	}
+
+	byteRangeString := ""
+	if startRange != endRange {
+		byteRangeString = fmt.Sprint(startRange) + "-" + fmt.Sprint(endRange)
+	}
+	abrqlog.MainTracer.Request(mediaType, urlHeaderString, byteRangeString)
 
 	//request the URL with GET
 	body, rtt, protocol, _ := getURLBody(urlHeaderString, isByteRangeMPD, startRange, endRange, quicBool, debugFile, debugLog, useTestbedBool, false)
