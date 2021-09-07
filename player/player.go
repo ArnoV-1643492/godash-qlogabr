@@ -39,6 +39,8 @@ import (
 	"github.com/uccmisl/godash/logging"
 	"github.com/uccmisl/godash/qoe"
 	"github.com/uccmisl/godash/utils"
+
+	abrqlog "github.com/uccmisl/godash/qlog"
 )
 
 // play position
@@ -478,6 +480,9 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 	// print out the rest of the play out segments - based on playStartPosition of the last segment streamed
 	// and an end time that includes for the original initial buffer size in seconds
 	logging.PrintPlayOutLog(mapSegmentLogPrintouts[0][segmentNumber-1].PlayStartPosition+mapSegmentLogPrintouts[0][initBuffer].PlayStartPosition, initBuffer, mapSegmentLogPrintouts, glob.LogDownload, printLog, printHeadersData)
+
+	time.Sleep(1 * time.Second)
+	abrqlog.MainTracer.Close()
 }
 
 // streamLoop :
