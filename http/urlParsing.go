@@ -108,7 +108,8 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 		if !useTestbedBool {
 			trQuic = &http3.RoundTripper{
 				TLSClientConfig: &tls.Config{
-					RootCAs: caCertPool,
+					RootCAs:            caCertPool,
+					InsecureSkipVerify: glob.InsecureSSL,
 				},
 			}
 			defer trQuic.Close()

@@ -250,7 +250,7 @@ const P1203maxHeight = 1080
 const P1203exec = "p1203-standalone"
 
 // InsecureSSL :  "Accept/Ignore all server SSL certificates"
-const InsecureSSL = false
+const InsecureSSL = true
 
 // Serv : port for the server
 const Serv = "serverPort"
