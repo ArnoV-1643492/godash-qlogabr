@@ -180,12 +180,12 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 
 	var client *http.Client
 	var err error
-	var tr *http.Transport
-	var trQuic *http3.RoundTripper
+	// var tr *http.Transport
+	// var trQuic *http3.RoundTripper
 	var contentLen = 0
 
 	// assign the protocols for this client
-	tr, client, trQuic = GetHTTPClient(quicBool, debugFile, debugLog, useTestbedBool)
+	_, client, _ = GetHTTPClient(quicBool, debugFile, debugLog, useTestbedBool)
 
 	// request the url
 	logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "Get the url "+url)
@@ -198,86 +198,82 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 		utils.StopApp()
 	}
 
-	logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "get the rtt "+url)
-	// determine the rtt for this segment
-	start := time.Now()
-	if quicBool {
-		// define a recursive call
-		var recuriveQuicCall func(int)
+	// logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "get the rtt "+url)
+	// if quicBool {
+	// 	// define a recursive call
+	// 	var recuriveQuicCall func(int)
 
-		// a recursive function to check for connection drops
-		recuriveQuicCall = func(count int) {
-			// check the connection using quic
-			_, err := trQuic.RoundTrip(req)
-			if count > 5 {
-				fmt.Println("Unable to connect to the URL " + url + " on the testbed using quic")
-				fmt.Println(err)
-				// stop the app
-				os.Exit(3)
-			} else if err != nil {
-				// lets sleep for 100 milliseconds
-				time.Sleep(1000 * time.Millisecond)
-				fmt.Println(count)
-				logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "unable to connect to server, lets get the file again "+string(count))
-				recuriveQuicCall(count + 1)
-			}
-			return
-		}
-		// lets call this 5 times just incase we can't reach due to no network connection
-		recuriveQuicCall(1)
+	// 	// a recursive function to check for connection drops
+	// 	recuriveQuicCall = func(count int) {
+	// 		// check the connection using quic
+	// 		_, err := trQuic.RoundTrip(req)
+	// 		if count > 5 {
+	// 			fmt.Println("Unable to connect to the URL " + url + " on the testbed using quic")
+	// 			fmt.Println(err)
+	// 			// stop the app
+	// 			os.Exit(3)
+	// 		} else if err != nil {
+	// 			// lets sleep for 100 milliseconds
+	// 			time.Sleep(1000 * time.Millisecond)
+	// 			fmt.Println(count)
+	// 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "unable to connect to server, lets get the file again "+string(count))
+	// 			recuriveQuicCall(count + 1)
+	// 		}
+	// 		return
+	// 	}
+	// 	// lets call this 5 times just incase we can't reach due to no network connection
+	// 	recuriveQuicCall(1)
 
-	} else if useTestbedBool {
-		// define a recursive call
-		var recuriveTestbedCall func(int)
+	// } else if useTestbedBool {
+	// 	// define a recursive call
+	// 	var recuriveTestbedCall func(int)
 
-		// a recursive function to check for connection drops
-		recuriveTestbedCall = func(count int) {
-			// use our new transport for calculating the rtt
-			_, err := tr.RoundTrip(req)
-			if count > 5 {
-				fmt.Println("Unable to connect to the URL " + url + " on the testbed")
-				fmt.Println(err)
-				// stop the app
-				os.Exit(3)
-			} else if err != nil {
-				// lets sleep for 100 milliseconds
-				time.Sleep(1000 * time.Millisecond)
-				fmt.Println(count)
-				logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "unable to connect to server, lets get the file again "+string(count))
-				recuriveTestbedCall(count + 1)
-			}
-			return
-		}
-		// lets call this 5 times just incase we can't reach due to no network connection
-		recuriveTestbedCall(1)
+	// 	// a recursive function to check for connection drops
+	// 	recuriveTestbedCall = func(count int) {
+	// 		// use our new transport for calculating the rtt
+	// 		_, err := tr.RoundTrip(req)
+	// 		if count > 5 {
+	// 			fmt.Println("Unable to connect to the URL " + url + " on the testbed")
+	// 			fmt.Println(err)
+	// 			// stop the app
+	// 			os.Exit(3)
+	// 		} else if err != nil {
+	// 			// lets sleep for 100 milliseconds
+	// 			time.Sleep(1000 * time.Millisecond)
+	// 			fmt.Println(count)
+	// 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "unable to connect to server, lets get the file again "+string(count))
+	// 			recuriveTestbedCall(count + 1)
+	// 		}
+	// 		return
+	// 	}
+	// 	// lets call this 5 times just incase we can't reach due to no network connection
+	// 	recuriveTestbedCall(1)
 
-	} else {
-		// define a recursive call
-		var recuriveDefaultCall func(int)
+	// } else {
+	// 	// define a recursive call
+	// 	var recuriveDefaultCall func(int)
 
-		// a recursive function to check for connection drops
-		recuriveDefaultCall = func(count int) {
-			// use http default transport for calculating the rtt
-			_, err := http.DefaultTransport.RoundTrip(req)
-			if count > 5 {
-				fmt.Println("Unable to connect to the URL " + url + " using default settings")
-				fmt.Println(err)
-				// stop the app
-				os.Exit(3)
-			} else if err != nil {
-				// lets sleep for 100 milliseconds
-				time.Sleep(1000 * time.Millisecond)
-				fmt.Println(count)
-				logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "unable to connect to server, lets get the file again "+string(count))
-				recuriveDefaultCall(count + 1)
-			}
-			return
-		}
-		// lets call this 5 times just incase we can't reach due to no network connection
-		recuriveDefaultCall(1)
-	}
-	// get rtt
-	rtt := time.Since(start)
+	// 	// a recursive function to check for connection drops
+	// 	recuriveDefaultCall = func(count int) {
+	// 		// use http default transport for calculating the rtt
+	// 		_, err := http.DefaultTransport.RoundTrip(req)
+	// 		if count > 5 {
+	// 			fmt.Println("Unable to connect to the URL " + url + " using default settings")
+	// 			fmt.Println(err)
+	// 			// stop the app
+	// 			os.Exit(3)
+	// 		} else if err != nil {
+	// 			// lets sleep for 100 milliseconds
+	// 			time.Sleep(1000 * time.Millisecond)
+	// 			fmt.Println(count)
+	// 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "unable to connect to server, lets get the file again "+string(count))
+	// 			recuriveDefaultCall(count + 1)
+	// 		}
+	// 		return
+	// 	}
+	// 	// lets call this 5 times just incase we can't reach due to no network connection
+	// 	recuriveDefaultCall(1)
+	// }
 
 	// add the byte ranges, if byte-range
 	if isByteRangeMPD {
@@ -288,12 +284,18 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	var resp *http.Response
 
 	// if we want to use quic
+	// determine the rtt for this segment
+	start := time.Now()
 	if quicBool {
 		resp, err = client.Do(req)
 	} else {
 		//request the URL using the client
 		resp, err = client.Do(req)
 	}
+	// get rtt
+	end := time.Now()
+	rtt := end.Sub(start)
+
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("the URL " + url + " doesn't match with anything")
