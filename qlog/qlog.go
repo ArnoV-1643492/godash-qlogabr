@@ -61,33 +61,28 @@ func (t *Tracer) TracerForStream(_ context.Context, p Perspective, sid StreamID)
 
 // A ConnectionTracer records events.
 type streamTracer interface {
-	// StartedConnection(local, remote net.Addr, srcConnID, destConnID ConnectionID)
-	// NegotiatedVersion(chosen VersionNumber, clientVersions, serverVersions []VersionNumber)
-	// ClosedConnection(error)
-	// SentTransportParameters(*TransportParameters)
-	// ReceivedTransportParameters(*TransportParameters)
-	// RestoredTransportParameters(parameters *TransportParameters) // for 0-RTT
-	// SentPacket(hdr *ExtendedHeader, size ByteCount, ack *AckFrame, frames []Frame)
-	// ReceivedVersionNegotiationPacket(*Header, []VersionNumber)
-	// ReceivedRetry(*Header)
-	// ReceivedPacket(hdr *ExtendedHeader, size ByteCount, frames []Frame)
-	// BufferedPacket(PacketType)
-	// DroppedPacket(PacketType, ByteCount, PacketDropReason)
 	UpdatedMetrics(rttStats *RTTStats)
-	// AcknowledgedPacket(EncryptionLevel, PacketNumber)
-	// LostPacket(EncryptionLevel, PacketNumber, PacketLossReason)
-	// UpdatedCongestionState(CongestionState)
-	// UpdatedPTOCount(value uint32)
-	// UpdatedKeyFromTLS(EncryptionLevel, Perspective)
-	// UpdatedKey(generation KeyPhase, remote bool)
-	// DroppedEncryptionLevel(EncryptionLevel)
-	// DroppedKey(generation KeyPhase)
-	// SetLossTimer(TimerType, EncryptionLevel, time.Time)
-	// LossTimerExpired(TimerType, EncryptionLevel)
-	// LossTimerCanceled()
-	// // Close is called when the connection is closed.
 	Close()
 	Debug(name, msg string)
+
+	// Playback
+	InitialiseStream(autoplay bool)
+	PlayerInteraction(state InteractionState, playhead playheadStatus, speed float64)
+	Rebuffer(playhead playheadStatus)
+	EndStream(playhead playheadStatus)
+	PlayheadProgress(playhead playheadStatus)
+
+	// ABR
+	Switch(mediaType MediaType, from, to representation)
+	ChangeReadyState(state ReadyState)
+
+	// Buffer
+	UpdateBufferOccupancy(mediaType MediaType, bufferStats bufferStats)
+
+	// Network
+	Request(mediaType MediaType, resourceURL string, byteRange string)
+	RequestUpdate(resourceURL string, bytesReceived int64)
+	AbortRequest(resourceURL string)
 }
 
 type StreamTracer struct {
@@ -208,7 +203,49 @@ func (t *StreamTracer) UpdatedMetrics(rttStats *RTTStats) {
 
 // Playback
 
+func (t *StreamTracer) InitialiseStream(autoplay bool) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventPlaybackStreamInitialised{autoplay: autoplay})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) PlayerInteraction(state InteractionState, playhead playheadStatus, speed float64) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventPlaybackInteraction{state: state, playhead: playhead, speed: speed})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) Rebuffer(playhead playheadStatus) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventPlaybackRebuffer{playhead: playhead})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) EndStream(playhead playheadStatus) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventPlaybackStreamEnd{playhead: playhead})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) PlayheadProgress(playhead playheadStatus) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventPlaybackPlayheadProgress{playhead: playhead})
+	t.mutex.Unlock()
+}
+
 // ABR
+
+func (t *StreamTracer) Switch(mediaType MediaType, from, to representation) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventABRSwitch{mediaType: mediaType, from: from, to: to})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) ChangeReadyState(state ReadyState) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventABRReadyStateChange{state: state})
+	t.mutex.Unlock()
+}
 
 // Buffer
 
@@ -223,5 +260,17 @@ func (t *StreamTracer) UpdateBufferOccupancy(mediaType MediaType, bufferStats bu
 func (t *StreamTracer) Request(mediaType MediaType, resourceURL string, byteRange string) {
 	t.mutex.Lock()
 	t.recordEvent(time.Now(), &eventNetworkRequest{media_type: mediaType, resource_url: resourceURL, byte_range: byteRange})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) RequestUpdate(resourceURL string, bytesReceived int64) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventNetworkRequestUpdate{resource_url: resourceURL, bytesReceived: bytesReceived})
+	t.mutex.Unlock()
+}
+
+func (t *StreamTracer) AbortRequest(resourceURL string) {
+	t.mutex.Lock()
+	t.recordEvent(time.Now(), &eventNetworkAbort{resource_url: resourceURL})
 	t.mutex.Unlock()
 }

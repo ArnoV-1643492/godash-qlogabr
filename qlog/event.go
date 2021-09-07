@@ -74,7 +74,113 @@ func (e eventMetricsUpdated) MarshalJSONObject(enc *gojay.Encoder) {
 
 // Playback
 
+type eventPlaybackStreamInitialised struct {
+	autoplay bool
+}
+
+func (e eventPlaybackStreamInitialised) Category() category { return categoryPlayback }
+func (e eventPlaybackStreamInitialised) Name() string       { return "stream_initialised" }
+func (e eventPlaybackStreamInitialised) IsNil() bool        { return false }
+
+func (e eventPlaybackStreamInitialised) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.BoolKey("autoplay", e.autoplay)
+}
+
+type eventPlaybackInteraction struct {
+	state    InteractionState
+	playhead playheadStatus
+	speed    float64
+}
+
+func (e eventPlaybackInteraction) Category() category { return categoryPlayback }
+func (e eventPlaybackInteraction) Name() string       { return "player_interaction" }
+func (e eventPlaybackInteraction) IsNil() bool        { return false }
+
+func (e eventPlaybackInteraction) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.StringKey("state", e.state.String())
+	enc.Int64Key("playhead_ms", e.playhead.PlayheadTime.Milliseconds())
+	if e.playhead.PlayheadFrame >= 0 {
+		enc.Int64Key("playhead_frame", int64(e.playhead.PlayheadFrame))
+	}
+	enc.Float64KeyOmitEmpty("speed", e.speed)
+}
+
+type eventPlaybackRebuffer struct {
+	playhead playheadStatus
+}
+
+func (e eventPlaybackRebuffer) Category() category { return categoryPlayback }
+func (e eventPlaybackRebuffer) Name() string       { return "rebuffer" }
+func (e eventPlaybackRebuffer) IsNil() bool        { return false }
+
+func (e eventPlaybackRebuffer) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.Int64Key("playhead_ms", e.playhead.PlayheadTime.Milliseconds())
+	if e.playhead.PlayheadFrame >= 0 {
+		enc.Int64Key("playhead_frame", int64(e.playhead.PlayheadFrame))
+	}
+}
+
+type eventPlaybackStreamEnd struct {
+	playhead playheadStatus
+}
+
+func (e eventPlaybackStreamEnd) Category() category { return categoryPlayback }
+func (e eventPlaybackStreamEnd) Name() string       { return "stream_end" }
+func (e eventPlaybackStreamEnd) IsNil() bool        { return false }
+
+func (e eventPlaybackStreamEnd) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.Int64Key("playhead_ms", e.playhead.PlayheadTime.Milliseconds())
+	if e.playhead.PlayheadFrame >= 0 {
+		enc.Int64Key("playhead_frame", int64(e.playhead.PlayheadFrame))
+	}
+}
+
+type eventPlaybackPlayheadProgress struct {
+	playhead playheadStatus
+}
+
+func (e eventPlaybackPlayheadProgress) Category() category { return categoryPlayback }
+func (e eventPlaybackPlayheadProgress) Name() string       { return "playhead_progress" }
+func (e eventPlaybackPlayheadProgress) IsNil() bool        { return false }
+
+func (e eventPlaybackPlayheadProgress) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.Int64Key("playhead_ms", e.playhead.PlayheadTime.Milliseconds())
+	if e.playhead.PlayheadFrame >= 0 {
+		enc.Int64Key("playhead_frame", int64(e.playhead.PlayheadFrame))
+	}
+}
+
 // ABR
+
+type eventABRSwitch struct {
+	from      representation
+	to        representation
+	mediaType MediaType
+}
+
+func (e eventABRSwitch) Category() category { return categoryABR }
+func (e eventABRSwitch) Name() string       { return "switch" }
+func (e eventABRSwitch) IsNil() bool        { return false }
+
+func (e eventABRSwitch) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.StringKey("media_type", e.mediaType.String())
+	enc.StringKeyOmitEmpty("from_id", e.from.ID)
+	enc.Int64KeyOmitEmpty("from_bitrate", e.from.Bitrate)
+	enc.StringKey("to_id", e.from.ID)
+	enc.Int64KeyOmitEmpty("from_id", e.from.Bitrate)
+}
+
+type eventABRReadyStateChange struct {
+	state ReadyState
+}
+
+func (e eventABRReadyStateChange) Category() category { return categoryABR }
+func (e eventABRReadyStateChange) Name() string       { return "readystate_change" }
+func (e eventABRReadyStateChange) IsNil() bool        { return false }
+
+func (e eventABRReadyStateChange) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.StringKey("state", e.state.String())
+}
 
 // Buffer
 
@@ -122,4 +228,30 @@ func (e eventNetworkRequest) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("media_type", e.media_type.String())
 	enc.StringKey("resource_url", e.resource_url)
 	enc.StringKeyOmitEmpty("range", e.byte_range)
+}
+
+type eventNetworkRequestUpdate struct {
+	resource_url  string
+	bytesReceived int64
+}
+
+func (e eventNetworkRequestUpdate) Category() category { return categoryNetwork }
+func (e eventNetworkRequestUpdate) Name() string       { return "request_update" }
+func (e eventNetworkRequestUpdate) IsNil() bool        { return false }
+
+func (e eventNetworkRequestUpdate) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.StringKey("resource_url", e.resource_url)
+	enc.Int64Key("bytes_received", e.bytesReceived)
+}
+
+type eventNetworkAbort struct {
+	resource_url string
+}
+
+func (e eventNetworkAbort) Category() category { return categoryNetwork }
+func (e eventNetworkAbort) Name() string       { return "abort" }
+func (e eventNetworkAbort) IsNil() bool        { return false }
+
+func (e eventNetworkAbort) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.StringKey("resource_url", e.resource_url)
 }

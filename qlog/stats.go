@@ -21,3 +21,27 @@ func NewBufferStats() bufferStats {
 		MaxFrames:     -1,
 	}
 }
+
+type playheadStatus struct {
+	PlayheadTime  time.Duration
+	PlayheadFrame int32
+}
+
+func NewPlayheadStatus() playheadStatus {
+	return playheadStatus{
+		PlayheadTime:  0,
+		PlayheadFrame: -1,
+	}
+}
+
+type representation struct {
+	ID      string
+	Bitrate int64
+}
+
+func NewRepresentation() representation {
+	return representation{
+		ID:      "",
+		Bitrate: -1,
+	}
+}
