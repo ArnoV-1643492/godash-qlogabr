@@ -59,8 +59,8 @@ var stallTime = 0
 
 // current mpd file
 var mpdListIndex = 0
-var lowestMPDrepRateIndex int
-var highestMPDrepRateIndex int
+var lowestMPDrepRateIndex []int
+var highestMPDrepRateIndex []int
 
 // save the previous mpdIndex
 var oldMPDIndex = 0
@@ -270,7 +270,12 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			// bandwithList - get all the range of representation bandwiths of the MPD
 
 			// maxSegments was the first value
-			_, maxBufferLevel, highestMPDrepRateIndex, lowestMPDrepRateIndex, segmentDurationArray, bandwithList, baseURL = http.GetMPDValues(mpdList, mpdListIndex, maxHeight, streamDuration, maxBuffer, currentMPDRepAdaptSet, isByteRangeMPD, debugLog)
+			l_highestMPDrepRateIndex := 0
+			l_lowestMPDrepRateIndex := 0
+			_, maxBufferLevel, l_highestMPDrepRateIndex, l_lowestMPDrepRateIndex, segmentDurationArray, bandwithList, baseURL = http.GetMPDValues(mpdList, mpdListIndex, maxHeight, streamDuration, maxBuffer, currentMPDRepAdaptSet, isByteRangeMPD, debugLog)
+
+			highestMPDrepRateIndex = append(highestMPDrepRateIndex, l_highestMPDrepRateIndex)
+			lowestMPDrepRateIndex = append(lowestMPDrepRateIndex, l_lowestMPDrepRateIndex)
 
 			// get the profile for this file
 			profiles := strings.Split(mpdList[mpdListIndex].Profiles, ":")
@@ -285,7 +290,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "DASH profile for the header is: "+profile)
 
 			// reset repRate
-			repRate = lowestMPDrepRateIndex
+			repRate = l_lowestMPDrepRateIndex
 
 			// print values to debug log
 			logging.DebugPrint(debugFile, debugLog, "\nDEBUG: ", "streaming has begun")
@@ -351,13 +356,13 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
 				// set the inital rep_rate to the lowest value index
-				repRate = lowestMPDrepRateIndex
+				repRate = l_lowestMPDrepRateIndex
 			case glob.ElasticAlg:
 				//fmt.Println("Elastic / in player.go")
 				//fmt.Println("currentURL: ", currentURL)
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
-				repRate = lowestMPDrepRateIndex
+				repRate = l_lowestMPDrepRateIndex
 				///fmt.Println("MPD file repRate index: ", repRate)
 				//fmt.Println("MPD file bandwithList[repRate]", bandwithList[repRate])
 			case glob.ProgressiveAlg:
@@ -370,26 +375,26 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
 
 				//fmt.Println("lowestmpd: ", lowestMPDrepRateIndex)
-				repRate = lowestMPDrepRateIndex
+				repRate = l_lowestMPDrepRateIndex
 
 			case glob.BBAAlg:
 				//fmt.Println("BBAAlg / in player.go")
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
 
-				repRate = lowestMPDrepRateIndex
+				repRate = l_lowestMPDrepRateIndex
 
 			case glob.ArbiterAlg:
 				//fmt.Println("ArbiterAlg / in player.go")
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
 
-				repRate = lowestMPDrepRateIndex
+				repRate = l_lowestMPDrepRateIndex
 
 			case glob.LogisticAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
-				repRate = lowestMPDrepRateIndex
+				repRate = l_lowestMPDrepRateIndex
 			case glob.MeanAverageAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
@@ -661,7 +666,11 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "current URL header: "+currentURL)
 
 			// get the relavent values from this MPD
-			streamDuration, maxBufferLevel, highestMPDrepRateIndex, lowestMPDrepRateIndex, segmentDurationArray, bandwithList, baseURL = http.GetMPDValues(mpdList, mpdListIndex, maxHeight, streamDuration, maxBuffer, mimeTypes[mimeTypeIndex], isByteRangeMPD, debugLog)
+			l_highestMPDrepRateIndex := 0
+			l_lowestMPDrepRateIndex := 0
+			streamDuration, maxBufferLevel, l_highestMPDrepRateIndex, l_lowestMPDrepRateIndex, segmentDurationArray, bandwithList, baseURL = http.GetMPDValues(mpdList, mpdListIndex, maxHeight, streamDuration, maxBuffer, mimeTypes[mimeTypeIndex], isByteRangeMPD, debugLog)
+			highestMPDrepRateIndex[mimeTypeIndex] = l_highestMPDrepRateIndex
+			lowestMPDrepRateIndex[mimeTypeIndex] = l_lowestMPDrepRateIndex
 
 			// current segment duration
 			segmentDuration = segmentDurationArray[mpdListIndex]
@@ -730,9 +739,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 
 		// keep rep_rate within the index boundaries
 		// MISL - might cause problems
-		if repRate < highestMPDrepRateIndex {
-			logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "Changing rep_rate index: from "+strconv.Itoa(repRate)+" to "+strconv.Itoa(highestMPDrepRateIndex))
-			repRate = highestMPDrepRateIndex
+		if repRate < highestMPDrepRateIndex[mimeTypeIndex] {
+			logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "Changing rep_rate index: from "+strconv.Itoa(repRate)+" to "+strconv.Itoa(highestMPDrepRateIndex[mimeTypeIndex]))
+			repRate = highestMPDrepRateIndex[mimeTypeIndex]
 		}
 
 		// get the segment
@@ -1045,7 +1054,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			saveCollabFilesBool = saveFilesBool
 		}
 		if getQoEBool {
-			qoe.CreateQoE(&mapSegmentLogPrintout, debugLog, initBuffer, bandwithList[highestMPDrepRateIndex], printHeadersData, saveCollabFilesBool, audioRate, audioCodec)
+			qoe.CreateQoE(&mapSegmentLogPrintout, debugLog, initBuffer, bandwithList[highestMPDrepRateIndex[mimeTypeIndex]], printHeadersData, saveCollabFilesBool, audioRate, audioCodec)
 		}
 
 		preRepRate := repRate
@@ -1055,13 +1064,13 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		//Conventional Algo
 		case glob.ConventionalAlg:
 			//fmt.Println("old: ", repRate)
-			algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex)
+			algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 			//fmt.Println("new: ", repRate)
 			//Harmonic Mean Algo
 		case glob.ElasticAlg:
 			//fmt.Println("old repRate index: ", repRate)
 			//fmt.Println("old bandwithList[repRate]", bandwithList[repRate])
-			algo.ElasticAlgo(&thrList, thr, deliveryTime, maxBuffer, &repRate, bandwithList, &staticAlgParameter, bufferLevel, kP, kI, lowestMPDrepRateIndex)
+			algo.ElasticAlgo(&thrList, thr, deliveryTime, maxBuffer, &repRate, bandwithList, &staticAlgParameter, bufferLevel, kP, kI, lowestMPDrepRateIndex[mimeTypeIndex])
 			//fmt.Println("new repRate index: ", repRate)
 			//fmt.Println("new bandwithList[repRate]", bandwithList[repRate])
 			//fmt.Println("elastic segmentNumber: ", segmentNumber)
@@ -1069,37 +1078,37 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		//Progressive Algo
 		case glob.ProgressiveAlg:
 			// fmt.Println("old: ", repRate)
-			algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex)
+			algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 			// fmt.Println("new: ", repRate)
 		//Logistic Algo
 		case glob.LogisticAlg:
 			// fmt.Println("old: ", repRate)
 			algo.Logistic(&thrList, thr, &repRate, bandwithList, bufferLevel,
-				highestMPDrepRateIndex, lowestMPDrepRateIndex, glob.DebugFile, debugLog,
+				highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], glob.DebugFile, debugLog,
 				maxBufferLevel)
 			// fmt.Println("new: ", repRate)
 			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "reprate returned: "+strconv.Itoa(repRate))
 		//Mean Average Algo
 		case glob.MeanAverageAlg:
 			//fmt.Println("old: ", repRate)
-			algo.MeanAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex)
+			algo.MeanAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 			//fmt.Println("new: ", repRate)
 		//Geometric Average Algo
 		case glob.GeomAverageAlg:
 			//fmt.Println("old: ", repRate)
-			algo.GeomAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex)
+			algo.GeomAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 			//fmt.Println("new: ", repRate)
 		//Exponential Average Algo
 		case glob.EMWAAverageAlg:
 			//fmt.Println("old: ", repRate)
-			algo.EMWAAverageAlgo(&thrList, &repRate, exponentialRatio, 3, thr, bandwithList, lowestMPDrepRateIndex)
+			algo.EMWAAverageAlgo(&thrList, &repRate, exponentialRatio, 3, thr, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 
 		case glob.ArbiterAlg:
 
 			repRate = algo.CalculateSelectedIndexArbiter(thr, segmentDuration*1000, segmentNumber, maxBufferLevel,
 				repRate, &thrList, streamDuration, mpdList[mpdListIndex], currentURL,
 				mimeTypes[mimeTypeIndex], segmentNumber, baseURL, debugLog, deliveryTime, bufferLevel,
-				highestMPDrepRateIndex, lowestMPDrepRateIndex, bandwithList,
+				highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList,
 				segSize, quicBool, useTestbedBool)
 			//fmt.Println("new: ", repRate)
 		case glob.BBAAlg:
@@ -1114,7 +1123,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			repRate = algo.CalculateSelectedIndexBba(thr, segmentDuration*1000, segmentNumber, maxBufferLevel,
 				repRate, &thrList, streamDuration, mpdList[mpdListIndex], currentURL,
 				mimeTypes[mimeTypeIndex], segmentNumber, baseURL, debugLog, deliveryTime, bufferLevel,
-				highestMPDrepRateIndex, lowestMPDrepRateIndex, bandwithList, quicBool, useTestbedBool)
+				highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, quicBool, useTestbedBool)
 
 		case glob.TestAlg:
 			//fmt.Println("")
