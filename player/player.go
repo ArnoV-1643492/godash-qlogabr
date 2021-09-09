@@ -543,6 +543,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 
 		bufferStats := abrqlog.NewBufferStats()
 		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
+		bufferStats.BufferTime = time.Duration(bufferLevel) * time.Millisecond
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
 		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex], bufferStats)
 
@@ -1204,6 +1205,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		streamStructs[mimeTypeIndex] = streaminfo
 
 		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
+		bufferStats.BufferTime = time.Duration(bufferLevel) * time.Millisecond
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
 		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
 			bufferStats)
