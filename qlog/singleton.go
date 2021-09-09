@@ -14,7 +14,7 @@ var MainTracer *StreamTracer = nil
 
 func init() {
 	generalTracer = NewTracer(func(p Perspective, streamID string) io.WriteCloser {
-		filename := fmt.Sprintf("logs/"+p.String()+"_abr_%x.qlog", streamID)
+		filename := fmt.Sprintf("logs/"+p.String()+"_abr_%s.qlog", streamID)
 		//filename := "logs/client.qlog"
 		f, err := os.Create(filename)
 		//f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)

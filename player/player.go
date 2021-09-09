@@ -178,7 +178,7 @@ var streamStructs []http.StreamStruct
  * check the different arguments in order to stream
  * call streamLoop to begin to stream
  */
-func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, codecName string, maxHeight int, streamDuration int, maxBuffer int, initBuffer int, adapt string, urlString string, fileDownloadLocationIn string, extendPrintLog bool, hls string, hlsBool bool, quic string, quicBool bool, getHeaderBool bool, getHeaderReadFromFile string, exponentialRatioIn float64, printHeadersDataIn map[string]string, printLogIn bool,
+func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, codecName string, maxHeight int, streamDuration int, streamSpeed float64, maxBuffer int, initBuffer int, adapt string, urlString string, fileDownloadLocationIn string, extendPrintLog bool, hls string, hlsBool bool, quic string, quicBool bool, getHeaderBool bool, getHeaderReadFromFile string, exponentialRatioIn float64, printHeadersDataIn map[string]string, printLogIn bool,
 	useTestbedBoolIn bool, getQoEBoolIn bool, saveFilesBoolIn bool, Noden P2Pconsul.NodeUrl) {
 
 	// set debug logs for the collab clients
@@ -292,6 +292,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "Input values to streaming algorithm: "+adapt)
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "maxHeight: "+strconv.Itoa(maxHeight))
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "streamDuration in seconds: "+strconv.Itoa(streamDuration))
+			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "streamSpeed: "+fmt.Sprintf("%f", streamSpeed))
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "maxBuffer: "+strconv.Itoa(maxBuffer))
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "initBuffer: "+strconv.Itoa(initBuffer))
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "url: "+urlString)
@@ -458,6 +459,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 				HlsBool:               hlsBool,
 				MapSegmentLogPrintout: mapSegmentLogPrintout,
 				StreamDuration:        streamDuration,
+				StreamSpeed:           streamSpeed,
 				ExtendPrintLog:        extendPrintLog,
 				HlsUsed:               false,
 				BufferLevel:           bufferLevel,
@@ -535,10 +537,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 	for mimeTypeIndex := range mimeTypes {
 
 		bufferStats := abrqlog.NewBufferStats()
-		bufferStats.PlayoutTime = time.Duration(streamStructs[mimeTypeIndex].BufferLevel) * time.Millisecond
+		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
-		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
-			bufferStats)
+		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex], bufferStats)
 
 		// get the values from the stream struct
 		segmentNumber := streamStructs[mimeTypeIndex].SegmentNumber
@@ -562,6 +563,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		hlsBool := streamStructs[mimeTypeIndex].HlsBool
 		mapSegmentLogPrintout := streamStructs[mimeTypeIndex].MapSegmentLogPrintout
 		streamDuration := streamStructs[mimeTypeIndex].StreamDuration
+		streamSpeed := streamStructs[mimeTypeIndex].StreamSpeed
 		extendPrintLog := streamStructs[mimeTypeIndex].ExtendPrintLog
 		hlsUsed := streamStructs[mimeTypeIndex].HlsUsed
 		bufferLevel := streamStructs[mimeTypeIndex].BufferLevel
@@ -640,7 +642,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 						)
 
 					// change the current buffer to reflect the time taken to get this HLS segment
-					bufferLevel -= (thisRunTimeVal + bufferDifference)
+					bufferLevel -= (int(float64(thisRunTimeVal)*streamSpeed) + bufferDifference)
 
 					// change the buffer levels of the previous chunks, so the printout reflects this value
 					mapSegmentLogPrintouts[mimeTypeIndex] = hlsfunc.ChangeBufferLevels(mapSegmentLogPrintouts[mimeTypeIndex], segmentNumber, chunkReplace, bufferDifference)
@@ -804,7 +806,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 				playhead := abrqlog.NewPlayheadStatus()
 				playhead.PlayheadTime = 0
 				playhead.PlayheadFrame = 0
-				abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, 1)
+				abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, streamSpeed)
 			}
 
 			// get the segment less the initial buffer
@@ -821,7 +823,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			}
 
 			// get the current buffer (excluding the current segment)
-			currentBuffer := (bufferLevel - thisRunTimeVal)
+			currentBuffer := (bufferLevel - int(float64(thisRunTimeVal)*streamSpeed))
 
 			// if we have a buffer level then we have no stalls
 			if currentBuffer >= 0 {
@@ -832,12 +834,12 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 				stallTime = currentBuffer
 
 				playhead := abrqlog.NewPlayheadStatus()
-				playhead.PlayheadTime = time.Duration(playPosition)
+				playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
 				abrqlog.MainTracer.Rebuffer(playhead)
 			}
 
 			// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
-			bufferLevel = utils.Max(bufferLevel-thisRunTimeVal, 0) + (segmentDuration * glob.Conversion1000)
+			bufferLevel = utils.Max(bufferLevel-int(float64(thisRunTimeVal)*streamSpeed), 0) + (segmentDuration * glob.Conversion1000)
 
 			// increment the waitToPlayCounter
 			waitToPlayCounter++
@@ -853,12 +855,12 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		if bufferLevel > maxBuffer*glob.Conversion1000 {
 			// retrieve the time it is going to sleep from the buffer level
 			// sleep until the max buffer level is reached
-			sleepTime := bufferLevel - (maxBuffer * glob.Conversion1000)
+			sleepTime := int(float64(bufferLevel-(maxBuffer*glob.Conversion1000)) / streamSpeed)
 			// sleep
 			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 
 			// reset the buffer to the new value less sleep time - should equal maxBuffer
-			bufferLevel -= sleepTime
+			bufferLevel -= int(float64(sleepTime) * streamSpeed)
 		}
 
 		// some times we want to wait for an initial number of segments before stream begins
@@ -1176,6 +1178,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			HlsBool:               hlsBool,
 			MapSegmentLogPrintout: mapSegmentLogPrintout,
 			StreamDuration:        streamDuration,
+			StreamSpeed:           streamSpeed,
 			ExtendPrintLog:        extendPrintLog,
 			HlsUsed:               hlsUsed,
 			BufferLevel:           bufferLevel,
@@ -1191,10 +1194,11 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		}
 		streamStructs[mimeTypeIndex] = streaminfo
 
-		bufferStats.PlayoutTime = time.Duration(streamStructs[mimeTypeIndex].BufferLevel) * time.Millisecond
+		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
 		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
 			bufferStats)
+
 		playhead := abrqlog.NewPlayheadStatus()
 		playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
 		abrqlog.MainTracer.PlayheadProgress(playhead)

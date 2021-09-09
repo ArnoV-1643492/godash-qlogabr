@@ -64,6 +64,7 @@ type StreamStruct struct {
 	HlsBool               bool
 	MapSegmentLogPrintout map[int]logging.SegPrintLogInformation
 	StreamDuration        int
+	StreamSpeed           float64
 	ExtendPrintLog        bool
 	HlsUsed               bool
 	BufferLevel           int

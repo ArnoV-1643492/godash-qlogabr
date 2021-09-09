@@ -141,6 +141,9 @@ const NumSegmentsName = "numSegments"
 // StreamDurationName : parameter variables
 const StreamDurationName = "streamDuration"
 
+// StreamSpeedName : parameter variables
+const StreamSpeedName = "streamSpeed"
+
 // PrintHeaderName : parameter variables
 const PrintHeaderName = "printHeader"
 

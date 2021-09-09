@@ -129,6 +129,7 @@ func main() {
 	codecPtr := flag.String(glob.CodecName, glob.RepRateCodecAVC, "codec to use - used when accessing multi-codec MPD files - \"["+glob.RepRateCodecAVC+"|"+glob.RepRateCodecHEVC+"|"+glob.RepRateCodecVP9+"|"+glob.RepRateCodecAV1+"|"+glob.RepRateCodecAudio+"]\"")
 	maxHeightPtr := flag.Int(glob.MaxHeightName, 2160, "maximum height resolution to stream - defaults to maximum resolution height in MPD file")
 	streamDurationPtr := flag.Int(glob.StreamDurationName, 0, "number of seconds to stream - defaults to maximum stream duration in MPD file")
+	streamSpeedPtr := flag.Float64(glob.StreamSpeedName, 1, "multiplier for speed of stream")
 	maxBufferPtr := flag.Int(glob.MaxBufferName, 30, "maximum stream buffer in seconds")
 	initBufferPtr := flag.Int(glob.InitBufferName, 2, "initial number of segments to download before stream starts")
 	adaptPtr := flag.String(glob.AdaptName, glob.ConventionalAlg, "DASH algorithms - \""+glob.ConventionalAlg+"|"+glob.ElasticAlg+"|"+glob.ProgressiveAlg+"|"+glob.LogisticAlg+"|"+glob.MeanAverageAlg+"|"+glob.GeomAverageAlg+"|"+glob.EMWAAverageAlg+"|"+glob.ArbiterAlg+"|"+glob.BBAAlg+"\"")
@@ -186,7 +187,7 @@ func main() {
 				}
 
 				// get some new values from the config file
-				configURLPtr, configAdaptPtr, configCodecPtr, configMaxHeightPtr, configStreamDurationPtr, configMaxBufferPtr, configInitBufferPtr, configHlsPtr, configFileStoreNamePtr, configStoreFilesPtr, configGetHeaderPtr, configDebugPtr, configTerminalPrintPtr, configQuicPtr, configExpRatioPtr, configPrintHeaderPtr, configUseTestbedPtr, configQoEPtr, configLogFilePtr, configCollabPrintPtr := logging.Configure(*configPtr, glob.DebugFile, debugLog)
+				configURLPtr, configAdaptPtr, configCodecPtr, configMaxHeightPtr, configStreamDurationPtr, configStreamSpeedPtr, configMaxBufferPtr, configInitBufferPtr, configHlsPtr, configFileStoreNamePtr, configStoreFilesPtr, configGetHeaderPtr, configDebugPtr, configTerminalPrintPtr, configQuicPtr, configExpRatioPtr, configPrintHeaderPtr, configUseTestbedPtr, configQoEPtr, configLogFilePtr, configCollabPrintPtr := logging.Configure(*configPtr, glob.DebugFile, debugLog)
 
 				if configURLPtr == "" {
 					log.Fatal("There is an issue with the URL parameter - this could be a malformed configuration file, please double check")
@@ -199,6 +200,7 @@ func main() {
 				utils.CheckStringVal(&configCodecPtr, codecPtr)
 				utils.CheckIntVal(&configMaxHeightPtr, maxHeightPtr)
 				utils.CheckIntVal(&configStreamDurationPtr, streamDurationPtr)
+				utils.CheckFloatVal(&configStreamSpeedPtr, streamSpeedPtr)
 				utils.CheckIntVal(&configMaxBufferPtr, maxBufferPtr)
 				utils.CheckIntVal(&configInitBufferPtr, initBufferPtr)
 				utils.CheckStringVal(&configHlsPtr, hlsPtr)
@@ -751,6 +753,20 @@ func main() {
 		}
 	}
 
+	// check the stream duration argument
+	if utils.IsFlagSet(glob.StreamSpeedName) || configSet {
+		// print value to debug log
+		logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "-"+glob.StreamSpeedName+" set to "+fmt.Sprintf("%f", *streamSpeedPtr))
+
+		// the input must be a positive number
+		if *streamDurationPtr < 0 {
+			// print error message
+			fmt.Println("*** -" + glob.StreamSpeedName + " must be a positive number and not " + fmt.Sprintf("%f", *streamSpeedPtr) + " ***")
+			// stop the app
+			utils.StopApp()
+		}
+	}
+
 	// check the max buffer argument
 	if utils.IsFlagSet(glob.MaxBufferName) || configSet {
 		// print value to debug log
@@ -840,7 +856,7 @@ func main() {
 
 	// its time to stream, call the algorithm file in player.go
 	player.Stream(structList, glob.DebugFile, debugLog, *codecPtr, glob.CodecName, *maxHeightPtr,
-		*streamDurationPtr, *maxBufferPtr, *initBufferPtr, *adaptPtr, *urlPtr, fileDownloadLocation, extendPrintLog, *hlsPtr, hlsBool, *quicPtr, quicBool, getHeaderBool, *getHeaderPtr, exponentialRatio, printHeadersData, printLog, useTestbedBool, getQoEBool, saveFilesBool, Noden)
+		*streamDurationPtr, *streamSpeedPtr, *maxBufferPtr, *initBufferPtr, *adaptPtr, *urlPtr, fileDownloadLocation, extendPrintLog, *hlsPtr, hlsBool, *quicPtr, quicBool, getHeaderBool, *getHeaderPtr, exponentialRatio, printHeadersData, printLog, useTestbedBool, getQoEBool, saveFilesBool, Noden)
 
 	// ending consul
 	if *collabPrintPtr == glob.CollabPrintOn {

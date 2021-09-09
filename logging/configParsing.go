@@ -45,6 +45,7 @@ type Config struct {
 	MaxBuffer      int     `json:"maxBuffer"`
 	MaxHeight      int     `json:"maxHeight"`
 	StreamDuration int     `json:"streamDuration"`
+	StreamSpeed    float64 `json:"streamSpeed"`
 	OutputFolder   string  `json:"outputFolder"`
 	StoreDash      string  `json:"storeDash"`
 	TerminalPrint  string  `json:"terminalPrint"`
@@ -60,7 +61,7 @@ type Config struct {
 }
 
 // Configure : extract all parameter values from the input config file
-func Configure(file string, debugFile string, debugLog bool) (urls string, adapt string, codec string, maxHeight int, streamDuration int, maxBuffer int, initBuffer int, hLS string, outputFolder string, storeDash string, getHeader string, debug string, terminalPrint string, quic string, expRatio float64, printHeader string, useTestbed string, qoe string, configLogFile string, collabPrint string) {
+func Configure(file string, debugFile string, debugLog bool) (urls string, adapt string, codec string, maxHeight int, streamDuration int, streamSpeed float64, maxBuffer int, initBuffer int, hLS string, outputFolder string, storeDash string, getHeader string, debug string, terminalPrint string, quic string, expRatio float64, printHeader string, useTestbed string, qoe string, configLogFile string, collabPrint string) {
 
 	// unmarshal the json file
 	config := recupStructWithConfigFile(file, debugFile, debugLog)
@@ -69,7 +70,7 @@ func Configure(file string, debugFile string, debugLog bool) (urls string, adapt
 	requestedURLs := recupURLsFromConfig(config)
 
 	// get all of the variables from the config file
-	adapt, codec, maxHeight, streamDuration, maxBuffer, initBuffer, hLS, outputFolder, storeDash, getHeader, debug, terminalPrint, quic, expRatio, printHeader, useTestbed, qoe, configLogFile, collabPrint = recupParameters(config)
+	adapt, codec, maxHeight, streamDuration, streamSpeed, maxBuffer, initBuffer, hLS, outputFolder, storeDash, getHeader, debug, terminalPrint, quic, expRatio, printHeader, useTestbed, qoe, configLogFile, collabPrint = recupParameters(config)
 
 	// get list of urls
 	urls = string(strings.Join(requestedURLs, ","))
@@ -78,7 +79,7 @@ func Configure(file string, debugFile string, debugLog bool) (urls string, adapt
 }
 
 // RecupParameters : extract all of the values from the config struct (excluding url)
-func recupParameters(config Config) (adapt string, codec string, maxHeight int, streamDuration int, maxBuffer int, initBuffer int, hLS string, outputFolder string, storeDash string, getHeaders string, debug string, terminalPrint string, quic string, expRatio float64, printHeader string, useTestbed string, qoe string, configLogFile string, collab string) {
+func recupParameters(config Config) (adapt string, codec string, maxHeight int, streamDuration int, streamSpeed float64, maxBuffer int, initBuffer int, hLS string, outputFolder string, storeDash string, getHeaders string, debug string, terminalPrint string, quic string, expRatio float64, printHeader string, useTestbed string, qoe string, configLogFile string, collab string) {
 
 	// there is no need to test conmpatibility for any of these parameters as main.go tests will check for this
 
@@ -87,6 +88,7 @@ func recupParameters(config Config) (adapt string, codec string, maxHeight int, 
 	codec = config.Codec
 	maxHeight = config.MaxHeight
 	streamDuration = config.StreamDuration
+	streamSpeed = config.StreamSpeed
 	maxBuffer = config.MaxBuffer
 	initBuffer = config.InitBuffer
 	outputFolder = config.OutputFolder
