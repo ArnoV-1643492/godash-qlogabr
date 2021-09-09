@@ -37,6 +37,8 @@ import (
 	glob "github.com/uccmisl/godash/global"
 	"github.com/uccmisl/godash/logging"
 	"github.com/uccmisl/godash/utils"
+
+	abrqlog "github.com/uccmisl/godash/qlog"
 )
 
 // StreamStruct we use for the segments
@@ -572,12 +574,23 @@ func GetContentLengthHeader(currentMPD MPD, currentURL string, currentMPDRepAdap
 		fmt.Println("null urlHeader")
 	}
 
+	// TODO
+	// JHerbots
+	// This needs another type of request event
+	// or just add a description of the request:
+	// body, header, ...
+	// possibly needs a custom media type as well? or just the media type of the body?
+	abrqlog.MainTracer.Request(abrqlog.MediaTypeOther, url, "")
+
 	//Get the header of the url
 	resp, err := client.Head(url)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	//TODO get size of header
+	//abrqlog.MainTracer.RequestUpdate(url, len(resp.Header))
 
 	contentLen, err := strconv.Atoi(resp.Header.Get("Content-Length"))
 	if err != nil {

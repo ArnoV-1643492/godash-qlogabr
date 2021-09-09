@@ -41,6 +41,8 @@ import (
 	"github.com/uccmisl/godash/logging"
 	"github.com/uccmisl/godash/player"
 	"github.com/uccmisl/godash/utils"
+
+	abrqlog "github.com/uccmisl/godash/qlog"
 )
 
 // variable to determine if debug log string will print
@@ -162,6 +164,9 @@ func main() {
 		// stop the app
 		utils.StopApp()
 	}
+
+	abrqlog.MainTracer.InitialiseStream(true)
+	//abrqlog.MainTracer.ChangeReadyState(abrqlog.ReadyStateHaveNothing)	//NOTE: not applicable for a headless client
 
 	// check config is first - check the config arguement
 	if utils.IsFlagSet(glob.ConfigName) {
@@ -326,6 +331,8 @@ func main() {
 
 		if !strings.HasPrefix(*urlPtr, "-") {
 			structList = http.ReadURLArray(*urlPtr, debugLog, useTestbedBool, quicBool)
+
+			//abrqlog.MainTracer.ChangeReadyState(abrqlog.ReadyStateHaveMetadata)	//NOTE: not applicable for a headless client
 
 			// save the current MPD Rep_rate Adaptation Set
 			// check if the codec is in the MPD urls passed in

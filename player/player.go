@@ -498,6 +498,8 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 	abrqlog.MainTracer.Close()
 }
 
+var currently_playing = false
+
 // streamLoop :
 /*
  * take the first segment number, download it with a low quality
@@ -716,6 +718,11 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			for mimeTypeIndex := range mimeTypes {
 				mapSegmentLogPrintouts = append(mapSegmentLogPrintouts, streamStructs[mimeTypeIndex].MapSegmentLogPrintout)
 			}
+
+			playhead := abrqlog.NewPlayheadStatus()
+			playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+			abrqlog.MainTracer.EndStream(playhead)
+
 			return segmentNumber, mapSegmentLogPrintouts
 		}
 
@@ -792,6 +799,14 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		// && !hlsReplaced
 		if initBuffer <= waitToPlayCounter {
 
+			if !currently_playing {
+				currently_playing = true
+				playhead := abrqlog.NewPlayheadStatus()
+				playhead.PlayheadTime = 0
+				playhead.PlayheadFrame = 0
+				abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, 1)
+			}
+
 			// get the segment less the initial buffer
 			// this needs to be based on running time and not based on number segments
 			// I'll need a function for this
@@ -815,6 +830,10 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 				// if the buffer is empty, then we need to calculate
 			} else {
 				stallTime = currentBuffer
+
+				playhead := abrqlog.NewPlayheadStatus()
+				playhead.PlayheadTime = time.Duration(playPosition)
+				abrqlog.MainTracer.Rebuffer(playhead)
 			}
 
 			// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
@@ -1027,6 +1046,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 			qoe.CreateQoE(&mapSegmentLogPrintout, debugLog, initBuffer, bandwithList[highestMPDrepRateIndex], printHeadersData, saveCollabFilesBool, audioRate, audioCodec)
 		}
 
+		preRepRate := repRate
+
 		// to calculate throughtput and select the repRate from it (in algorithm.go)
 		switch adapt {
 		//Conventional Algo
@@ -1098,6 +1119,17 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		}
 		logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
+		postRepRate := repRate
+		if preRepRate != postRepRate {
+			from := abrqlog.NewRepresentation()
+			from.ID = strconv.Itoa(preRepRate)
+			from.Bitrate = int64(bandwithList[preRepRate] / glob.Conversion1000)
+			to := abrqlog.NewRepresentation()
+			to.ID = strconv.Itoa(postRepRate)
+			to.Bitrate = int64(bandwithList[postRepRate] / glob.Conversion1000)
+			abrqlog.MainTracer.Switch(mimeTypesMediaType[mimeTypeIndex], from, to)
+		}
+
 		//Increase the segment number
 		segmentNumber++
 
@@ -1112,6 +1144,11 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 				for thisMimeTypeIndex := range mimeTypes {
 					mapSegmentLogPrintouts = append(mapSegmentLogPrintouts, streamStructs[thisMimeTypeIndex].MapSegmentLogPrintout)
 				}
+
+				playhead := abrqlog.NewPlayheadStatus()
+				playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+				abrqlog.MainTracer.EndStream(playhead)
+
 				return segmentNumber, mapSegmentLogPrintouts
 			}
 		}
@@ -1158,6 +1195,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
 		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
 			bufferStats)
+		playhead := abrqlog.NewPlayheadStatus()
+		playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+		abrqlog.MainTracer.PlayheadProgress(playhead)
 	}
 
 	// this gets the index for the next MPD and the segment number for the next chunk

@@ -242,6 +242,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("the URL " + url + " doesn't match with anything")
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -350,6 +351,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("the URL " + url + " doesn't match with anything")
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -364,6 +366,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	if resp.StatusCode != http.StatusOK && !isByteRangeMPD {
 		// add this to the debug log
 		logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "The URL returned a non status okay error code: "+strconv.Itoa(resp.StatusCode))
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -390,6 +393,7 @@ func getURLProgressively(url string, isByteRangeMPD bool, startRange int, endRan
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("the URL " + url + " doesn't match with anything")
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -444,6 +448,7 @@ func getURLProgressively(url string, isByteRangeMPD bool, startRange int, endRan
 	// check for errors
 	if err := resp.Err(); err != nil {
 		fmt.Fprintf(os.Stderr, "Download failed: %v\n", err)
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -475,6 +480,7 @@ func GetURLByteRangeBody(url string, startRange int, endRange int) (io.ReadClose
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("the URL " + url + " doesn't match with anything")
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -496,6 +502,7 @@ func GetURLByteRangeBody(url string, startRange int, endRange int) (io.ReadClose
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("the URL " + url + " doesn't match with anything")
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -504,6 +511,7 @@ func GetURLByteRangeBody(url string, startRange int, endRange int) (io.ReadClose
 	if resp.StatusCode != http.StatusOK {
 		// add this to the debug log
 		fmt.Println("The URL returned a non status okay error code: " + strconv.Itoa(resp.StatusCode))
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
@@ -532,9 +540,12 @@ func GetURL(url string, isByteRangeMPD bool, startRange int, endRange int, quicB
 	//bodyString := string(body)
 	if err != nil {
 		fmt.Println("Unable to read from url")
+		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
 	}
+
+	abrqlog.MainTracer.RequestUpdate(url, int64(len(body)))
 
 	// close the responseBody
 	responseBody.Close()
@@ -636,8 +647,11 @@ func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteR
 	segSize, err := strconv.Atoi(size)
 	if err != nil {
 		logging.DebugPrint(debugFile, debugLog, "Error : ", "Cannot convert the size to an int when getting a file")
+		abrqlog.MainTracer.AbortRequest(urlHeaderString)
 		utils.StopApp()
 	}
+
+	abrqlog.MainTracer.RequestUpdate(urlHeaderString, int64(segSize))
 
 	// get the P.1203 segSize (less the header)
 	withoutHeaderVal := int64(segSize)

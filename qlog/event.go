@@ -165,9 +165,13 @@ func (e eventABRSwitch) IsNil() bool        { return false }
 func (e eventABRSwitch) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("media_type", e.mediaType.String())
 	enc.StringKeyOmitEmpty("from_id", e.from.ID)
-	enc.Int64KeyOmitEmpty("from_bitrate", e.from.Bitrate)
-	enc.StringKey("to_id", e.from.ID)
-	enc.Int64KeyOmitEmpty("from_id", e.from.Bitrate)
+	if e.from.Bitrate >= 0 {
+		enc.Int64Key("from_bitrate", e.from.Bitrate)
+	}
+	enc.StringKey("to_id", e.to.ID)
+	if e.to.Bitrate >= 0 {
+		enc.Int64Key("to_bitrate", e.to.Bitrate)
+	}
 }
 
 type eventABRReadyStateChange struct {
