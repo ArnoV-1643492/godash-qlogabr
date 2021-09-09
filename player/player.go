@@ -541,12 +541,6 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 	// lets loop over our mimeTypes
 	for mimeTypeIndex := range mimeTypes {
 
-		bufferStats := abrqlog.NewBufferStats()
-		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
-		bufferStats.BufferTime = time.Duration(bufferLevel) * time.Millisecond
-		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
-		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex], bufferStats)
-
 		// get the values from the stream struct
 		segmentNumber := streamStructs[mimeTypeIndex].SegmentNumber
 		currentURL := streamStructs[mimeTypeIndex].CurrentURL
@@ -1204,6 +1198,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		}
 		streamStructs[mimeTypeIndex] = streaminfo
 
+		bufferStats := abrqlog.NewBufferStats()
 		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
 		bufferStats.BufferTime = time.Duration(bufferLevel) * time.Millisecond
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
