@@ -840,6 +840,12 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 				playhead := abrqlog.NewPlayheadStatus()
 				playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
 				abrqlog.MainTracer.Rebuffer(playhead)
+
+				bufferStats := abrqlog.NewBufferStats()
+				bufferStats.PlayoutTime = time.Duration(0)
+				bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
+				abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
+					bufferStats)
 			}
 
 			// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
@@ -1199,8 +1205,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 		streamStructs[mimeTypeIndex] = streaminfo
 
 		bufferStats := abrqlog.NewBufferStats()
-		bufferStats.PlayoutTime = time.Duration(playPosition) * time.Millisecond
-		bufferStats.BufferTime = time.Duration(bufferLevel) * time.Millisecond
+		bufferStats.PlayoutTime = time.Duration(bufferLevel) * time.Millisecond
 		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
 		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
 			bufferStats)

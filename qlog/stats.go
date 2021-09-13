@@ -7,10 +7,6 @@ type bufferStats struct {
 	PlayoutBytes  int64
 	PlayoutFrames int32
 
-	BufferTime   time.Duration
-	BufferBytes  int64
-	BufferFrames int32
-
 	MaxTime   time.Duration
 	MaxBytes  int64
 	MaxFrames int32
@@ -21,12 +17,10 @@ func NewBufferStats() bufferStats {
 		PlayoutTime:   0,
 		PlayoutBytes:  -1,
 		PlayoutFrames: -1,
-		BufferTime:    0,
-		BufferBytes:   -1,
-		BufferFrames:  -1,
-		MaxTime:       0,
-		MaxBytes:      -1,
-		MaxFrames:     -1,
+
+		MaxTime:   0,
+		MaxBytes:  -1,
+		MaxFrames: -1,
 	}
 }
 

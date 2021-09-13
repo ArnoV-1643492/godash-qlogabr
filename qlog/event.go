@@ -207,14 +207,6 @@ func (e eventBufferOccupancyUpdated) MarshalJSONObject(enc *gojay.Encoder) {
 		enc.Int64Key("playout_frames", int64(e.buffer_stats.PlayoutFrames))
 	}
 
-	enc.Int64Key("buffer_ms", e.buffer_stats.BufferTime.Milliseconds())
-	if e.buffer_stats.BufferBytes >= 0 {
-		enc.Int64Key("buffer_bytes", e.buffer_stats.BufferBytes)
-	}
-	if e.buffer_stats.BufferFrames >= 0 {
-		enc.Int64Key("buffer_frames", int64(e.buffer_stats.BufferFrames))
-	}
-
 	enc.Int64Key("max_ms", e.buffer_stats.MaxTime.Milliseconds())
 	if e.buffer_stats.MaxBytes >= 0 {
 		enc.Int64Key("max_bytes", e.buffer_stats.MaxBytes)

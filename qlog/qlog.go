@@ -122,34 +122,57 @@ func (t *StreamTracer) run() {
 	buf := &bytes.Buffer{}
 	enc := gojay.NewEncoder(buf)
 	tl := &topLevel{
-		trace: trace{
-			VantagePoint: vantagePoint{Type: t.perspective},
-			CommonFields: commonFields{
-				ReferenceTime: t.referenceTime,
+		traces: []trace{
+			{
+				Title:        "MPEG-DASH goDash",
+				Description:  "MPEG-DASH goDash [" + time.Now().String() + "]",
+				VantagePoint: vantagePoint{Type: t.perspective, Name: "goDash application layer"},
+				CommonFields: commonFields{
+					ProtocolType:  "QLOG_ABR",
+					ReferenceTime: t.referenceTime,
+				},
 			},
 		},
 	}
 	if err := enc.Encode(tl); err != nil {
 		panic(fmt.Sprintf("qlog encoding into a bytes.Buffer failed: %s", err))
 	}
+	buf.Truncate(buf.Len() - 3)
 	if err := buf.WriteByte('\n'); err != nil {
 		panic(fmt.Sprintf("qlog encoding into a bytes.Buffer failed: %s", err))
 	}
 	if _, err := t.w.Write(buf.Bytes()); err != nil {
 		t.encodeErr = err
 	}
+
+	if _, err := t.w.Write([]byte(",\"events\": [\n")); err != nil {
+		panic(fmt.Sprintf("qlog encoding events key failed: %s", err))
+	}
+
+	firsteventwritten := false
+
 	enc = gojay.NewEncoder(t.w)
 	for ev := range t.events {
 		if t.encodeErr != nil { // if encoding failed, just continue draining the event channel
 			continue
 		}
+		if firsteventwritten {
+			if _, err := t.w.Write([]byte(",")); err != nil {
+				t.encodeErr = err
+			}
+		} else {
+			firsteventwritten = true
+		}
 		if err := enc.Encode(ev); err != nil {
 			t.encodeErr = err
 			continue
 		}
-		if _, err := t.w.Write([]byte{'\n'}); err != nil {
+		if _, err := t.w.Write([]byte("\n")); err != nil {
 			t.encodeErr = err
 		}
+	}
+	if _, err := t.w.Write([]byte("]}]}\n")); err != nil {
+		panic(fmt.Sprintf("qlog encoding close events key failed: %s", err))
 	}
 }
 

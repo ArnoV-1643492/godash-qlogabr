@@ -24,6 +24,7 @@ func init() {
 		log.Printf("Creating ABR qlog file %s.\n", filename)
 		return NewBufferedWriteCloser(bufio.NewWriter(f), f)
 	})
+	//TODO find a stream id for this tracer
 	MainTracer = generalTracer.TracerForStream(context.Background(), PerspectiveClient, "")
 }
 
