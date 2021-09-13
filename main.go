@@ -27,6 +27,7 @@ import (
 	"flag"
 	"fmt" // to read arguments to application
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -728,13 +729,22 @@ func main() {
 				maxSegments, segmentDurationArray = http.GetSegmentDetails(structList, 0, 0)
 			}
 		}
-		// get the segment duration of the last segment (typically larger than normal)
-		lastSegmentDuration := http.SplitMPDSegmentDuration(structList[0].MaxSegmentDuration)
-		// current segment duration for the first MPD in the url list
-		segmentDuration := segmentDurationArray[0]
-		// get MPD stream duration
-		mpdStreamDuration := segmentDuration*(maxSegments-1) + lastSegmentDuration
-		// determine if MPD stream time is larger than streamDurationPtr othewise error and stop
+
+		mpdStreamDuration := int(math.Inf(1))
+		if structList[0].MediaPresentationDuration != "" {
+			mpdStreamDuration = http.SplitMPDSegmentDuration(structList[0].MediaPresentationDuration)
+		} else if structList[0].MaxSegmentDuration != "" {
+			// get the segment duration of the last segment (typically larger than normal)
+			lastSegmentDuration := http.SplitMPDSegmentDuration(structList[0].MaxSegmentDuration)
+			// current segment duration for the first MPD in the url list
+			segmentDuration := segmentDurationArray[0]
+			// get MPD stream duration
+			mpdStreamDuration = segmentDuration*(maxSegments-1) + lastSegmentDuration
+			// determine if MPD stream time is larger than streamDurationPtr othewise error and stop
+		} else {
+			fmt.Println("Unable to get mpdStreamDuration")
+			utils.StopApp()
+		}
 
 		if mpdStreamDuration < (*streamDurationPtr) {
 

@@ -318,6 +318,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 
 			// get the stream header from the required MPD (first index in the mpdList)
 			headerURL = http.GetFullStreamHeader(mpdList[mpdListIndex], isByteRangeMPD, currentMPDRepAdaptSet, AudioByteRange, 0)
+			headerURL = strings.Replace(headerURL, "$Bandwidth$", strconv.Itoa(mpdList[mpdListIndex].Periods[0].AdaptationSet[currentMPDRepAdaptSet].Representation[l_lowestMPDrepRateIndex].BandWidth), -1)
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "stream initialise URL header: "+headerURL)
 
 			// convert the url strings to a list

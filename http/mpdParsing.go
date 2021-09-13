@@ -30,6 +30,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -266,6 +267,14 @@ func fileParser(mpdBody []byte) MPD {
 
 	//extract everything from the file read in bytes to the structures
 	xml.Unmarshal(mpdBody, &mpd)
+
+	for _, period := range mpd.Periods {
+		for _, adapt := range period.AdaptationSet {
+			sort.SliceStable(adapt.Representation, func(i, j int) bool {
+				return adapt.Representation[i].BandWidth < adapt.Representation[j].BandWidth
+			})
+		}
+	}
 
 	return *mpd
 }
@@ -962,7 +971,13 @@ func GetNextSegment(mpd MPD, SegNumber int, SegQUALITY int, currentMPDRepAdaptSe
 	nb := strconv.Itoa(SegNumber)
 
 	//Replace $Number$ by the segment number in the url and return it
-	return strings.Replace(repRateBaseURL, "$Number$", nb, -1)
+	nextURL := strings.Replace(repRateBaseURL, "$Number$", nb, -1)
+
+	bw := strconv.Itoa(mpd.Periods[0].AdaptationSet[currentMPDRepAdaptSet].Representation[(SegQUALITY)].BandWidth)
+
+	nextURL = strings.Replace(nextURL, "$Bandwidth$", bw, -1)
+
+	return nextURL
 }
 
 // GetMPDheightIndex :
