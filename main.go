@@ -708,59 +708,58 @@ func main() {
 			// stop the app
 			utils.StopApp()
 		}
-		// first work out if we are using a byte-range MPD
-		baseURL := http.GetRepresentationBaseURL(structList[0], 0)
-		if baseURL != glob.RepRateBaseURL {
-			isByteRangeMPD = true
-		}
-		// variables
-		var segmentDurationArray []int
-		var maxSegments int
+	}
+	mpdStreamDuration := int(math.Inf(1))
+	// first work out if we are using a byte-range MPD
+	baseURL := http.GetRepresentationBaseURL(structList[0], 0)
+	if baseURL != glob.RepRateBaseURL {
+		isByteRangeMPD = true
+	}
+	// variables
+	var segmentDurationArray []int
+	var maxSegments int
 
-		// get max number segments and segment duration from the first URL MPD - index 0
-		if isByteRangeMPD {
-			// if this is a byte-range MPD, get byte range metrics
-			maxSegments, segmentDurationArray = http.GetByteRangeSegmentDetails(structList, 0, 0)
-		} else {
-			// if not, get standard profile metrics
-			maxSegments, segmentDurationArray = http.GetSegmentDetails(structList, 0)
-			// get the audio info as well
-			if audioContent {
-				maxSegments, segmentDurationArray = http.GetSegmentDetails(structList, 0, 0)
-			}
+	// get max number segments and segment duration from the first URL MPD - index 0
+	if isByteRangeMPD {
+		// if this is a byte-range MPD, get byte range metrics
+		maxSegments, segmentDurationArray = http.GetByteRangeSegmentDetails(structList, 0, 0)
+	} else {
+		// if not, get standard profile metrics
+		maxSegments, segmentDurationArray = http.GetSegmentDetails(structList, 0)
+		// get the audio info as well
+		if audioContent {
+			maxSegments, segmentDurationArray = http.GetSegmentDetails(structList, 0, 0)
 		}
+	}
 
-		mpdStreamDuration := int(math.Inf(1))
-		if structList[0].MediaPresentationDuration != "" {
-			mpdStreamDuration = http.SplitMPDSegmentDuration(structList[0].MediaPresentationDuration)
-		} else if structList[0].MaxSegmentDuration != "" {
-			// get the segment duration of the last segment (typically larger than normal)
-			lastSegmentDuration := http.SplitMPDSegmentDuration(structList[0].MaxSegmentDuration)
-			// current segment duration for the first MPD in the url list
-			segmentDuration := segmentDurationArray[0]
-			// get MPD stream duration
-			mpdStreamDuration = segmentDuration*(maxSegments-1) + lastSegmentDuration
-			// determine if MPD stream time is larger than streamDurationPtr othewise error and stop
-		} else {
-			fmt.Println("Unable to get mpdStreamDuration")
-			utils.StopApp()
-		}
+	if structList[0].MediaPresentationDuration != "" {
+		mpdStreamDuration = http.SplitMPDSegmentDuration(structList[0].MediaPresentationDuration)
+	} else if structList[0].MaxSegmentDuration != "" {
+		// get the segment duration of the last segment (typically larger than normal)
+		lastSegmentDuration := http.SplitMPDSegmentDuration(structList[0].MaxSegmentDuration)
+		// current segment duration for the first MPD in the url list
+		segmentDuration := segmentDurationArray[0]
+		// get MPD stream duration
+		mpdStreamDuration = segmentDuration*(maxSegments-1) + lastSegmentDuration
+		// determine if MPD stream time is larger than streamDurationPtr othewise error and stop
+	} else {
+		fmt.Println("Unable to get mpdStreamDuration")
+		utils.StopApp()
+	}
 
-		if mpdStreamDuration < (*streamDurationPtr) {
+	if mpdStreamDuration < (*streamDurationPtr) {
 
-			fmt.Println("*** -" + glob.StreamDurationName + ", " + strconv.Itoa(*streamDurationPtr) + " seconds, must not be larger than the maximum MPD stream duration of " + strconv.Itoa(mpdStreamDuration) + " second ***")
-			// stop the app
-			utils.StopApp()
-		}
-
-		// if no values passed in for segment duration, stream the entire clip
-		if *streamDurationPtr == 0 {
-			*streamDurationPtr = (mpdStreamDuration * glob.Conversion1000)
-		} else {
-			// otherwise use the passed in segment number
-			// convert this segment number to seconds
-			*streamDurationPtr *= glob.Conversion1000
-		}
+		fmt.Println("*** -" + glob.StreamDurationName + ", " + strconv.Itoa(*streamDurationPtr) + " seconds, must not be larger than the maximum MPD stream duration of " + strconv.Itoa(mpdStreamDuration) + " second ***")
+		// stop the app
+		utils.StopApp()
+	}
+	// if no values passed in for segment duration, stream the entire clip
+	if *streamDurationPtr == 0 {
+		*streamDurationPtr = (mpdStreamDuration * glob.Conversion1000)
+	} else {
+		// otherwise use the passed in segment number
+		// convert this segment number to seconds
+		*streamDurationPtr *= glob.Conversion1000
 	}
 
 	// check the stream duration argument
