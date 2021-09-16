@@ -159,6 +159,7 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 					RootCAs:            caCertPool,
 					InsecureSkipVerify: glob.InsecureSSL,
 				},
+				QuicConfig: &qconf,
 			}
 			defer trQuic.Close()
 			client = &http.Client{
