@@ -1154,7 +1154,8 @@ func SplitMPDSegmentDuration(mpdSegDuration string) int {
 	}
 
 	// get the seconds and convert to int
-	s = strings.Split(s[1], ".")
+	s = strings.Split(s[1], "S")
+	s = strings.Split(s[0], ".")
 	i2, err := strconv.Atoi(s[0])
 	if err != nil {
 		fmt.Println("*** Problem with converting segment seconds to int ***")
