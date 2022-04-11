@@ -13,3 +13,5 @@ require (
 	gonum.org/v1/gonum v0.7.0
 	google.golang.org/grpc v1.19.0
 )
+
+replace github.com/lucas-clemente/quic-go => ../quic-go

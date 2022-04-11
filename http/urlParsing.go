@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/francoispqt/gojay"
 	"github.com/uccmisl/godash/logging"
 	"github.com/uccmisl/godash/utils"
 
@@ -53,6 +54,7 @@ import (
 	quiclogging "github.com/lucas-clemente/quic-go/logging"
 	"github.com/lucas-clemente/quic-go/qlog"
 
+	xlayer "github.com/uccmisl/godash/crosslayer"
 	abrqlog "github.com/uccmisl/godash/qlog"
 )
 
@@ -137,6 +139,8 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 		}
 	}
 
+	qlogEventChan := make(chan qlog.Event)
+
 	// if we want to use quic
 	if quicBool {
 		qconf := quic.Config{}
@@ -151,7 +155,13 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 			}
 			log.Printf("Creating qlog file %s.\n", filename)
 			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
-		})
+		},
+			qlogEventChan,
+		)
+		//go printQlogEvents(qlogEventChan)
+		accountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
+		accountant.Listen()
+
 		// if we are not using the terstbed
 		if !useTestbedBool {
 			trQuic = &http3.RoundTripper{
@@ -789,4 +799,16 @@ func GetFileProgressively(currentURL string, fileBaseURL string, fileLocation st
 	}
 
 	return rtt, segSize
+}
+
+func printQlogEvents(c chan qlog.Event) {
+	for msg := range c {
+		start := time.Now()
+		fmt.Println("Received transport layer event")
+		fmt.Println(msg.RelativeTime)
+		msgJSON, _ := gojay.Marshal(msg)
+		duration := time.Since(start)
+		fmt.Println(string(msgJSON))
+		fmt.Println("Time to decode qlog JSON: ", duration.Microseconds(), "µs")
+	}
 }
