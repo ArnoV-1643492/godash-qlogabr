@@ -1,12 +1,16 @@
 package crosslayer
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/lucas-clemente/quic-go/qlog"
 )
 
 type CrossLayerAccountant struct {
-	EventChannel   chan qlog.Event
-	throughputList []float64
+	EventChannel          chan qlog.Event
+	throughputList        []float64
+	relativeTimeLastEvent time.Duration
 }
 
 func (a CrossLayerAccountant) Listen() {
@@ -15,36 +19,27 @@ func (a CrossLayerAccountant) Listen() {
 
 func (a CrossLayerAccountant) channelListenerThread() {
 	for msg := range a.EventChannel {
+		a.relativeTimeLastEvent = msg.RelativeTime
 		details := msg.GetEventDetails()
-		eventName := details.Name()
-		if eventName == "packet_received" {
-			//qlog.eventPacketReceived(details)
+		eventType := details.EventType()
+		if eventType == "EventPacketReceived" {
+			fmt.Println(eventType)
+			packetReceivedPointer := details.(*qlog.EventPacketReceived)
+			packetReceived := *packetReceivedPointer
+			fmt.Println(packetReceived.Length)
+			a.throughputList = append(a.throughputList, float64(packetReceived.Length))
 		}
-
-		/*msgJSON, _ := gojay.Marshal(msg)
-		msgStr := string(msgJSON)
-		var reading map[string]interface{}
-		err := json.Unmarshal([]byte(msgStr), &reading)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			//fmt.Println(reading["name"])
-			if reading["name"] == "transport:packet_received" {
-				fmt.Println(reading["name"])
-				fmt.Println(reading["data"].(map[string]interface{})["raw"].(map[string]interface{})["length"].(string))
-			}
-		}
-		//var result map[string]interface{}
-		//gojay.Unmarshal(msgJSON, &result)
-		/*msgTime := msg.RelativeTime.Seconds()
-		msgType := msg.Name()
-		if msgType == "packet_received" {
-			//msgSize := msg.eventDetails.Payload
-			payloadlen := msg.GetEventPayloadLength()
-			if payloadlen != 0 {
-				fmt.Println(msgTime)
-				fmt.Println(payloadlen)
-			}
-		}*/
 	}
+}
+
+/**
+* Returns average measured throughput in bytes/second
+ */
+func (a CrossLayerAccountant) GetAverageThroughput() float64 {
+	// Calculate sum
+	var sum float64 = 0
+	for _, el := range a.throughputList {
+		sum += el
+	}
+	return sum / a.relativeTimeLastEvent.Seconds()
 }

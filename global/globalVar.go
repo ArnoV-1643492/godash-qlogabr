@@ -96,6 +96,9 @@ const TestAlg = "test"
 //ArbiterAlg : constants for our algorithms
 const ArbiterAlg = "arbiter"
 
+// ---- Cross-layer algorithms ----
+const MeanAverageXLAlg = "averageXL"
+
 // HlsOff : constants for HLS
 const HlsOff = "off"
 
