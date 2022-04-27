@@ -31,6 +31,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lucas-clemente/quic-go/qlog"
 	"github.com/uccmisl/godash/P2Pconsul"
 	algo "github.com/uccmisl/godash/algorithms"
 	glob "github.com/uccmisl/godash/global"
@@ -40,6 +41,7 @@ import (
 	"github.com/uccmisl/godash/qoe"
 	"github.com/uccmisl/godash/utils"
 
+	xlayer "github.com/uccmisl/godash/crosslayer"
 	abrqlog "github.com/uccmisl/godash/qlog"
 )
 
@@ -225,6 +227,11 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 		// stop the app
 		utils.StopApp()
 	}
+
+	// Construct the cross-layer accountant object
+	qlogEventChan := make(chan qlog.Event)
+	accountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
+	accountant.Listen(true)
 
 	// the input must be a defined value - loops over the adaptationSets
 	// currently one adaptation set per video and audio
@@ -421,7 +428,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			startTime = time.Now()
 			nextRunTime = time.Now()
 
-			_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
+			_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool, accountant)
 
 			// get the segment headers and stop this run
 			if getHeaderBool {
@@ -494,7 +501,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 	logging.PrintHeaders(extendPrintLog, fileDownloadLocation, glob.LogDownload, debugFile, debugLog, printLog, printHeadersData)
 
 	// Streaming loop function - using the first MPD index - 0, and hlsUsed false
-	segmentNumber, mapSegmentLogPrintouts = streamLoop(streamStructs, Noden)
+	segmentNumber, mapSegmentLogPrintouts = streamLoop(streamStructs, Noden, accountant)
 
 	// print sections of the map to the debug log - if debug is true
 	if debugLog {
@@ -516,7 +523,7 @@ var currently_playing = false
  * take the first segment number, download it with a low quality
  * call itself with the next segment number
  */
-func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int, []map[int]logging.SegPrintLogInformation) {
+func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, accountant xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation) {
 
 	// variable for rtt for this segment
 	var rtt time.Duration
@@ -643,6 +650,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 							repRate,
 							mimeTypeIndex,
 							Noden,
+							accountant,
 						)
 
 					// change the current buffer to reflect the time taken to get this HLS segment
@@ -1138,7 +1146,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 
 		case glob.MeanAverageXLAlg:
 			//fmt.Println("old: ", repRate)
-			algo.MeanAverageXLAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+			algo.MeanAverageXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 		}
 		logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
@@ -1242,7 +1250,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl) (int
 
 	// stream the next chunk
 	if !stopPlayer {
-		segmentNumber, mapSegmentLogPrintouts = streamLoop(streamStructs, Noden)
+		segmentNumber, mapSegmentLogPrintouts = streamLoop(streamStructs, Noden, accountant)
 	}
 
 	return segmentNumber, mapSegmentLogPrintouts

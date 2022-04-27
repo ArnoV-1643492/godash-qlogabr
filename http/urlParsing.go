@@ -95,7 +95,7 @@ var tr *http.Transport
 var trQuic *http3.RoundTripper
 
 // getHTTPClient:
-func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBool bool) (*http.Transport, *http.Client, *http3.RoundTripper) {
+func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBool bool, accountant xlayer.CrossLayerAccountant) (*http.Transport, *http.Client, *http3.RoundTripper) {
 
 	if client != nil {
 		return tr, client, trQuic
@@ -139,7 +139,8 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 		}
 	}
 
-	qlogEventChan := make(chan qlog.Event)
+	// TODO: remove, we now receive this channel from upper calls
+	//qlogEventChan := make(chan qlog.Event)
 
 	// if we want to use quic
 	if quicBool {
@@ -156,11 +157,11 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 			log.Printf("Creating qlog file %s.\n", filename)
 			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
 		},
-			qlogEventChan,
+			accountant.EventChannel,
 		)
 		//go printQlogEvents(qlogEventChan)
-		accountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
-		accountant.Listen()
+		//accountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
+		//accountant.Listen()
 
 		// if we are not using the terstbed
 		if !useTestbedBool {
@@ -243,8 +244,13 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	// var trQuic *http3.RoundTripper
 	var contentLen = 0
 
+	// Create temprary accountant
+	qlogEventChan := make(chan qlog.Event)
+	tempAccountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
+	tempAccountant.Listen(false)
+
 	// assign the protocols for this client
-	_, client, _ = GetHTTPClient(quicBool, debugFile, debugLog, useTestbedBool)
+	_, client, _ = GetHTTPClient(quicBool, debugFile, debugLog, useTestbedBool, tempAccountant)
 
 	// request the url
 	logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "Get the url "+url)

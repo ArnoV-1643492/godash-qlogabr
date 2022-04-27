@@ -1,5 +1,5 @@
 {
-        "adapt" : "arbiter",
+	"adapt" : "average",
         "debug" : "on",
         "initBuffer" : 2,
         "maxBuffer" : 60,

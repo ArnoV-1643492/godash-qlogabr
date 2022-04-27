@@ -13,21 +13,24 @@ type CrossLayerAccountant struct {
 	relativeTimeLastEvent time.Duration
 }
 
-func (a CrossLayerAccountant) Listen() {
-	go a.channelListenerThread()
+func (a CrossLayerAccountant) Listen(trackEvents bool) {
+	go a.channelListenerThread(trackEvents)
 }
 
-func (a CrossLayerAccountant) channelListenerThread() {
+func (a CrossLayerAccountant) channelListenerThread(trackEvents bool) {
 	for msg := range a.EventChannel {
-		a.relativeTimeLastEvent = msg.RelativeTime
-		details := msg.GetEventDetails()
-		eventType := details.EventType()
-		if eventType == "EventPacketReceived" {
-			fmt.Println(eventType)
-			packetReceivedPointer := details.(*qlog.EventPacketReceived)
-			packetReceived := *packetReceivedPointer
-			fmt.Println(packetReceived.Length)
-			a.throughputList = append(a.throughputList, float64(packetReceived.Length))
+		// Only process events when this bool is set
+		if trackEvents {
+			a.relativeTimeLastEvent = msg.RelativeTime
+			details := msg.GetEventDetails()
+			eventType := details.EventType()
+			if eventType == "EventPacketReceived" {
+				fmt.Println(eventType)
+				packetReceivedPointer := details.(*qlog.EventPacketReceived)
+				packetReceived := *packetReceivedPointer
+				fmt.Println(packetReceived.Length)
+				a.throughputList = append(a.throughputList, float64(packetReceived.Length))
+			}
 		}
 	}
 }
