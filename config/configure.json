@@ -1,5 +1,5 @@
 {
-	"adapt" : "average",
+	"adapt" : "averageXL",
         "debug" : "on",
         "initBuffer" : 2,
         "maxBuffer" : 60,

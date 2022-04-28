@@ -94,8 +94,15 @@ var client *http.Client = nil
 var tr *http.Transport
 var trQuic *http3.RoundTripper
 
+var globAccountant *xlayer.CrossLayerAccountant = nil
+
+// Sets the globAccountant to the given accountant object
+func SetAccountant(acc *xlayer.CrossLayerAccountant) {
+	globAccountant = acc
+}
+
 // getHTTPClient:
-func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBool bool, accountant xlayer.CrossLayerAccountant) (*http.Transport, *http.Client, *http3.RoundTripper) {
+func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBool bool) (*http.Transport, *http.Client, *http3.RoundTripper) {
 
 	if client != nil {
 		return tr, client, trQuic
@@ -157,7 +164,7 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 			log.Printf("Creating qlog file %s.\n", filename)
 			return NewBufferedWriteCloser(bufio.NewWriter(f), f)
 		},
-			accountant.EventChannel,
+			globAccountant.EventChannel,
 		)
 		//go printQlogEvents(qlogEventChan)
 		//accountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
@@ -244,13 +251,8 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	// var trQuic *http3.RoundTripper
 	var contentLen = 0
 
-	// Create temprary accountant
-	qlogEventChan := make(chan qlog.Event)
-	tempAccountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
-	tempAccountant.Listen(false)
-
 	// assign the protocols for this client
-	_, client, _ = GetHTTPClient(quicBool, debugFile, debugLog, useTestbedBool, tempAccountant)
+	_, client, _ = GetHTTPClient(quicBool, debugFile, debugLog, useTestbedBool)
 
 	// request the url
 	logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "Get the url "+url)

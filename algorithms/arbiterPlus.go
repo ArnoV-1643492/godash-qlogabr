@@ -3,14 +3,10 @@ package algorithms
 import (
 	//"fmt"
 
-	"github.com/lucas-clemente/quic-go/qlog"
 	glob "github.com/uccmisl/godash/global"
 	"github.com/uccmisl/godash/http"
 	"github.com/uccmisl/godash/utils"
-
 	//"math"
-
-	xlayer "github.com/uccmisl/godash/crosslayer"
 )
 
 var DEFAULT_EXPONENT float64 = 0.4
@@ -123,12 +119,7 @@ func CalculateSelectedIndexArbiter(newThr int, lastDuration int, lastIndex int, 
 	//segHeadValues := http.GetNSegmentHeaders(mpdList, codecIndexList, maxHeight, 1, streamDuration, isByteRangeMPD, maxBuffer, headerURL, codec, urlInput, debugLog, true)
 	//fmt.Println("test", http.SegHeadValues)
 
-	// Make temporary accountant
-	qlogEventChan := make(chan qlog.Event)
-	tempAccountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
-	tempAccountant.Listen(false)
-
-	_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool, tempAccountant)
+	_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
 
 	if actualRateQuality {
 		videoChunks := mpdDuration / lastDuration

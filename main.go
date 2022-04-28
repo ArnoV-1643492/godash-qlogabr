@@ -36,6 +36,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/lucas-clemente/quic-go/qlog"
 	"github.com/uccmisl/godash/P2Pconsul"
 	glob "github.com/uccmisl/godash/global"
 	"github.com/uccmisl/godash/http"
@@ -43,6 +44,7 @@ import (
 	"github.com/uccmisl/godash/player"
 	"github.com/uccmisl/godash/utils"
 
+	xlayer "github.com/uccmisl/godash/crosslayer"
 	abrqlog "github.com/uccmisl/godash/qlog"
 )
 
@@ -166,6 +168,12 @@ func main() {
 		// stop the app
 		utils.StopApp()
 	}
+
+	// Create accountant for cross-layer events
+	qlogEventChan := make(chan qlog.Event)
+	accountant := &xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
+	accountant.Listen(true)
+	http.SetAccountant(accountant)
 
 	abrqlog.MainTracer.InitialiseStream(true)
 	//abrqlog.MainTracer.ChangeReadyState(abrqlog.ReadyStateHaveNothing)	//NOTE: not applicable for a headless client
@@ -865,7 +873,7 @@ func main() {
 
 	// its time to stream, call the algorithm file in player.go
 	player.Stream(structList, glob.DebugFile, debugLog, *codecPtr, glob.CodecName, *maxHeightPtr,
-		*streamDurationPtr, *streamSpeedPtr, *maxBufferPtr, *initBufferPtr, *adaptPtr, *urlPtr, fileDownloadLocation, extendPrintLog, *hlsPtr, hlsBool, *quicPtr, quicBool, getHeaderBool, *getHeaderPtr, exponentialRatio, printHeadersData, printLog, useTestbedBool, getQoEBool, saveFilesBool, Noden)
+		*streamDurationPtr, *streamSpeedPtr, *maxBufferPtr, *initBufferPtr, *adaptPtr, *urlPtr, fileDownloadLocation, extendPrintLog, *hlsPtr, hlsBool, *quicPtr, quicBool, getHeaderBool, *getHeaderPtr, exponentialRatio, printHeadersData, printLog, useTestbedBool, getQoEBool, saveFilesBool, Noden, accountant)
 
 	// ending consul
 	if *collabPrintPtr == glob.CollabPrintOn {

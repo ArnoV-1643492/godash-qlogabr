@@ -70,8 +70,8 @@ import (
 // hlsBool bool, mapSegmentLogPrintout map[int]logging.SegPrintLogInformation, numSeg int, extendPrintLog bool,
 // hlsUsed bool, bufferLevel int, segmentDurationTotal int, quic string, quicBool bool, baseURL string, debugLog bool, audioContent bool, repRate int)
 func GetHlsSegment(
-	f func(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, accountant xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation), hlsChunkNumber int,
-	mapSegmentLogPrintout []map[int]logging.SegPrintLogInformation, maxHeight int, urlInput []string, initBuffer int, maxBuffer int, codecName string, codec string, urlString string, mpdList []http.MPD, nextSegmentNumber int, extendPrintLog bool, startTime time.Time, nextRunTime time.Time, arrivalTime int, hlsUsed bool, quic string, quicBool bool, baseURL string, debugFile string, debugLog bool, repRateBaseURL string, audioContent bool, repRate int, mimeTypeIndex int, Noden P2Pconsul.NodeUrl, accountant xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation, int, int, time.Time) {
+	f func(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, accountant *xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation), hlsChunkNumber int,
+	mapSegmentLogPrintout []map[int]logging.SegPrintLogInformation, maxHeight int, urlInput []string, initBuffer int, maxBuffer int, codecName string, codec string, urlString string, mpdList []http.MPD, nextSegmentNumber int, extendPrintLog bool, startTime time.Time, nextRunTime time.Time, arrivalTime int, hlsUsed bool, quic string, quicBool bool, baseURL string, debugFile string, debugLog bool, repRateBaseURL string, audioContent bool, repRate int, mimeTypeIndex int, Noden P2Pconsul.NodeUrl, accountant *xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation, int, int, time.Time) {
 
 	// store the segment map details
 	previousChunk := mapSegmentLogPrintout[mimeTypeIndex][hlsChunkNumber]

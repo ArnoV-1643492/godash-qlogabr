@@ -12,7 +12,7 @@ import (
 	"github.com/uccmisl/godash/crosslayer"
 )
 
-func MeanAverageXLAlgo(XLaccountant crosslayer.CrossLayerAccountant, thrList *[]int, newThr int, repRate *int, bandwithList []int, lowestMPDrepRateIndex int) {
+func MeanAverageXLAlgo(XLaccountant *crosslayer.CrossLayerAccountant, thrList *[]int, newThr int, repRate *int, bandwithList []int, lowestMPDrepRateIndex int) {
 	var average float64
 
 	*thrList = append(*thrList, newThr)
@@ -27,8 +27,10 @@ func MeanAverageXLAlgo(XLaccountant crosslayer.CrossLayerAccountant, thrList *[]
 	// average of the last throughtputs
 	meanAverage(*thrList, &average)
 
+	fmt.Println("------------------------")
 	fmt.Println("AVERAGE: ", int(average))
 	fmt.Println("AVERAGEXL: ", int(XLaccountant.GetAverageThroughput()))
+	fmt.Println("------------------------")
 
 	//We select the reprate with the calculated throughtput
 	*repRate = SelectRepRateWithThroughtput(int(average), bandwithList, lowestMPDrepRateIndex)

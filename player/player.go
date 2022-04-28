@@ -31,7 +31,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lucas-clemente/quic-go/qlog"
 	"github.com/uccmisl/godash/P2Pconsul"
 	algo "github.com/uccmisl/godash/algorithms"
 	glob "github.com/uccmisl/godash/global"
@@ -181,7 +180,7 @@ var streamStructs []http.StreamStruct
  * call streamLoop to begin to stream
  */
 func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, codecName string, maxHeight int, streamDuration int, streamSpeed float64, maxBuffer int, initBuffer int, adapt string, urlString string, fileDownloadLocationIn string, extendPrintLog bool, hls string, hlsBool bool, quic string, quicBool bool, getHeaderBool bool, getHeaderReadFromFile string, exponentialRatioIn float64, printHeadersDataIn map[string]string, printLogIn bool,
-	useTestbedBoolIn bool, getQoEBoolIn bool, saveFilesBoolIn bool, Noden P2Pconsul.NodeUrl) {
+	useTestbedBoolIn bool, getQoEBoolIn bool, saveFilesBoolIn bool, Noden P2Pconsul.NodeUrl, accountant *xlayer.CrossLayerAccountant) {
 
 	// set debug logs for the collab clients
 	if Noden.ClientName != glob.CollabPrintOff && Noden.ClientName != "" {
@@ -227,11 +226,6 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 		// stop the app
 		utils.StopApp()
 	}
-
-	// Construct the cross-layer accountant object
-	qlogEventChan := make(chan qlog.Event)
-	accountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
-	accountant.Listen(true)
 
 	// the input must be a defined value - loops over the adaptationSets
 	// currently one adaptation set per video and audio
@@ -428,7 +422,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			startTime = time.Now()
 			nextRunTime = time.Now()
 
-			_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool, accountant)
+			_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
 
 			// get the segment headers and stop this run
 			if getHeaderBool {
@@ -523,7 +517,7 @@ var currently_playing = false
  * take the first segment number, download it with a low quality
  * call itself with the next segment number
  */
-func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, accountant xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation) {
+func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, accountant *xlayer.CrossLayerAccountant) (int, []map[int]logging.SegPrintLogInformation) {
 
 	// variable for rtt for this segment
 	var rtt time.Duration

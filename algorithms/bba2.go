@@ -22,8 +22,6 @@
 package algorithms
 
 import (
-	"github.com/lucas-clemente/quic-go/qlog"
-	xlayer "github.com/uccmisl/godash/crosslayer"
 	glob "github.com/uccmisl/godash/global"
 	"github.com/uccmisl/godash/http"
 	"github.com/uccmisl/godash/utils"
@@ -188,12 +186,7 @@ func bba1UpdateReservoir(lastRate int, lastRateIndex int, mpdDuration int,
 	// fmt.Println("contlenght", http.GetContentLengthHeader(currentMPD,
 	// 	currentURL, currentMPDRepAdaptSet, lastRate, segmentNumber+1, baseURL, debugLog))
 
-	// Make temporary accountant
-	qlogEventChan := make(chan qlog.Event)
-	tempAccountant := xlayer.CrossLayerAccountant{EventChannel: qlogEventChan}
-	tempAccountant.Listen(false)
-
-	_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool, tempAccountant)
+	_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
 
 	for i := 0; i < resvWin; i++ {
 		//do a func getSegBySize(lastSegNumber+i, lastRateIndex) and return the size of the segment
