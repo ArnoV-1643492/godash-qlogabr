@@ -198,7 +198,7 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 			// set up our http transport
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "creating our http transport using our tls config for quic")
 
-			trQuic = &http3.RoundTripper{TLSClientConfig: quicConfig, QuicConfig: &qconf}
+			trQuic = &http3.RoundTripper{TLSClientConfig: quicConfig, QuicConfig: &qconf, DisableCompression: true}
 			// set up the client
 			logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "creating our client using our http transport and our tls config for quic")
 			client = &http.Client{Transport: trQuic}

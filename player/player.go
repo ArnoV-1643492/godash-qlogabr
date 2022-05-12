@@ -774,6 +774,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		// Start Time of this segment
 		currentTime := time.Now()
+		accountant.StartTiming()
 
 		// Download the segment - add the segment duration to the file name
 		switch adapt {
@@ -802,12 +803,17 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		}
 
+		//fmt.Println("segSize: ", segSize)
+
 		// arrival and delivery times for this segment
 		arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
 		deliveryTime := int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
 		thisRunTimeVal := int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
 
 		nextRunTime = time.Now()
+
+		//fmt.Println("deliveryTime: ", deliveryTime)
+		accountant.StopTiming()
 
 		// some times we want to wait for an initial number of segments before stream begins
 		// no need to do asny printouts when we are replacing this chunk

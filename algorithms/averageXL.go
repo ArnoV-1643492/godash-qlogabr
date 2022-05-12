@@ -26,10 +26,12 @@ func MeanAverageXLAlgo(XLaccountant *crosslayer.CrossLayerAccountant, thrList *[
 
 	// average of the last throughtputs
 	meanAverage(*thrList, &average)
+	xlaverage := XLaccountant.GetAverageThroughput()
 
 	fmt.Println("------------------------")
-	fmt.Println("AVERAGE: ", int(average))
-	fmt.Println("AVERAGEXL: ", int(XLaccountant.GetAverageThroughput()))
+	fmt.Println("AVERAGE: ", int64(average))
+	fmt.Println("AVERAGEXL: ", int64(xlaverage))
+	fmt.Println("DIFF: ", int64(xlaverage-average))
 	fmt.Println("------------------------")
 
 	//We select the reprate with the calculated throughtput

@@ -50,10 +50,22 @@ func MeanAverageAlgo(thrList *[]int, newThr int, repRate *int, bandwithList []in
 func meanAverage(thrList []int, average *float64) {
 
 	*average = 0.0
+	//var av int = 0
 
 	for i := 0; i < len(thrList); i++ {
 		*average += float64(thrList[i])
+		//av += thrList[i]
 	}
+
+	/*
+		f, err := os.OpenFile("/tmp/trace.csv", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			f.WriteString(strconv.FormatInt(int64(av), 10) + ",")
+		}
+	*/
+
 	*average = *average / float64(len(thrList))
 
 }
