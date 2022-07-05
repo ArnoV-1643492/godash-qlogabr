@@ -7,8 +7,6 @@ Cross-layer version of the MeanAverage algorithm
 package algorithms
 
 import (
-	"fmt"
-
 	"github.com/uccmisl/godash/crosslayer"
 )
 
@@ -28,12 +26,14 @@ func MeanAverageXLAlgo(XLaccountant *crosslayer.CrossLayerAccountant, thrList *[
 	meanAverage(*thrList, &average)
 	xlaverage := XLaccountant.GetAverageThroughput()
 
-	fmt.Println("------------------------")
-	fmt.Println("AVERAGE: ", int64(average))
-	fmt.Println("AVERAGEXL: ", int64(xlaverage))
-	fmt.Println("DIFF: ", int64(xlaverage-average))
-	fmt.Println("------------------------")
+	/*
+		fmt.Println("------------------------")
+		fmt.Println("AVERAGE: ", int64(average))
+		fmt.Println("AVERAGEXL: ", int64(xlaverage))
+		fmt.Println("DIFF: ", int64(xlaverage-average))
+		fmt.Println("------------------------")
+	*/
 
 	//We select the reprate with the calculated throughtput
-	*repRate = SelectRepRateWithThroughtput(int(average), bandwithList, lowestMPDrepRateIndex)
+	*repRate = SelectRepRateWithThroughtput(int(xlaverage), bandwithList, lowestMPDrepRateIndex)
 }
