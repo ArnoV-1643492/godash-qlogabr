@@ -72,6 +72,34 @@ func (a *CrossLayerAccountant) GetAverageThroughput() float64 {
 	return float64(sum*8) / (float64(a.getTotalTime()) / 1000) // convert it to seconds
 }
 
+/**
+* Returns average measured throughput in bits/second of last 3000 packets
+ */
+func (a *CrossLayerAccountant) GetRecentAverageThroughput() float64 {
+	// Calculate sum
+	var sum int = 0
+	if len(a.throughputList) > 3000 {
+		var sliceOfList []int = a.throughputList[len(a.throughputList)-3000 : len(a.throughputList)+1]
+		for _, el := range sliceOfList {
+			sum += el
+		}
+	} else {
+		for _, el := range a.throughputList {
+			sum += el
+		}
+	}
+	/*
+		fmt.Println("Sum XL: ", sum)
+			f, err := os.OpenFile("/tmp/trace.csv", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				f.WriteString(strconv.FormatInt(int64(sum), 10) + "\n")
+			}*/
+	//     bits			  /  second
+	return float64(sum*8) / (float64(a.getTotalTime()) / 1000) // convert it to seconds
+}
+
 // Should be called when we start downloading a segment
 func (a *CrossLayerAccountant) StartTiming() {
 	a.currStartTime = time.Now()

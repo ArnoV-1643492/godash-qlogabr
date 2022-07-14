@@ -1,5 +1,5 @@
 {
-	"adapt" : "averageXL",
+	"adapt" : "averageRecentXL",
         "debug" : "on",
         "initBuffer" : 2,
         "maxBuffer" : 60,
@@ -15,6 +15,6 @@
         "quic" : "on",
         "useTestbed" : "off",
         "url" : "[https://127.0.0.1:6121/bbb/BigBuckBunny_1s_simple_2014_05_09.mpd]",
-        "QoE" : "on",
+        "QoE" : "off",
         "serveraddr" : "off"
 }

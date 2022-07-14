@@ -98,6 +98,7 @@ const ArbiterAlg = "arbiter"
 
 // ---- Cross-layer algorithms ----
 const MeanAverageXLAlg = "averageXL"
+const MeanAverageRecentXLAlg = "averageRecentXL"
 
 // HlsOff : constants for HLS
 const HlsOff = "off"

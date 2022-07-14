@@ -409,6 +409,9 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			case glob.MeanAverageXLAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
 					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+			case glob.MeanAverageRecentXLAlg:
+				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
 			}
 			// debug logs
 			logging.DebugPrint(debugFile, debugLog, "\nDEBUG: ", "We are using repRate: "+strconv.Itoa(repRate))
@@ -800,6 +803,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
 		case glob.MeanAverageXLAlg:
 			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+		case glob.MeanAverageRecentXLAlg:
+			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
 
 		}
 
@@ -1147,6 +1152,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.MeanAverageXLAlg:
 			//fmt.Println("old: ", repRate)
 			algo.MeanAverageXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+		case glob.MeanAverageRecentXLAlg:
+			//fmt.Println("old: ", repRate)
+			algo.MeanAverageRecentXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 		}
 		logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
