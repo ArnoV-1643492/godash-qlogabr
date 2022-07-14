@@ -42,7 +42,7 @@ func MeanAverageAlgo(thrList *[]int, newThr int, repRate *int, bandwithList []in
 	//fmt.Println("AVERAGE: ", int(average))
 
 	//We select the reprate with the calculated throughtput
-	*repRate = SelectRepRateWithThroughtput(int(average), bandwithList, lowestMPDrepRateIndex)
+	*repRate = SelectRepRateWithThroughtput(int(average)/2, bandwithList, lowestMPDrepRateIndex)
 }
 
 // meanAverage :
