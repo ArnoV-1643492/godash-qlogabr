@@ -949,6 +949,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		// calculate the throughtput (we get the segSize while downloading the file)
 		// multiple segSize by 8 to get bits and not bytes
 		thr := algo.CalculateThroughtput(segSize*8, deliveryTime)
+		fmt.Println("THROUGHPUT: ", thr)
 
 		// save the bitrate from the input segment (less the header info)
 		var kbps float64
