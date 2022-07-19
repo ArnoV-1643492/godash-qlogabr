@@ -21,8 +21,6 @@
 
 package algorithms
 
-import "fmt"
-
 //MeanAverageAlgo : "normal average" -> take all the throughtputs and make the average
 //call the func meanAverage with all the values of throughtput to make a "standard" average
 func MeanAverageAlgo(thrList *[]int, newThr int, repRate *int, bandwithList []int, lowestMPDrepRateIndex int) {
@@ -41,10 +39,10 @@ func MeanAverageAlgo(thrList *[]int, newThr int, repRate *int, bandwithList []in
 	// average of the last throughtputs
 	meanAverage(*thrList, &average)
 
-	fmt.Println("AVERAGE: ", *thrList)
+	// fmt.Println("AVERAGE: ", *thrList)
 
 	//We select the reprate with the calculated throughtput
-	*repRate = SelectRepRateWithThroughtput(int(average)/2, bandwithList, lowestMPDrepRateIndex)
+	*repRate = SelectRepRateWithThroughtput(int(average), bandwithList, lowestMPDrepRateIndex)
 }
 
 // meanAverage :
