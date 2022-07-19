@@ -135,7 +135,7 @@ func createP1203(logMap *map[int]logging.SegPrintLogInformation, c chan float64,
 		// just get the value
 	}
 	// lets just get the overall P.1203 value that we want
-	out, err := exec.Command("bash", "-c", "python3 -c 'from itu_p1203 import P1203Standalone; print(P1203Standalone("+jsonString+").calculate_complete(True)[\"O46\"])'").Output()
+	/*out, err := exec.Command("bash", "-c", "python3 -c 'from itu_p1203 import P1203Standalone; print(P1203Standalone("+jsonString+").calculate_complete(True)[\"O46\"])'").Output()
 
 	if err != nil {
 		log.Fatal(err)
@@ -151,7 +151,8 @@ func createP1203(logMap *map[int]logging.SegPrintLogInformation, c chan float64,
 	}
 
 	// calculate the P1203 value and return to the channel
-	c <- p1203Value
+	c <- p1203Value*/
+	c <- 0.0
 }
 
 // getP1203Val : return the P1203 value for this segment
