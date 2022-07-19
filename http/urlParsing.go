@@ -702,7 +702,9 @@ func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteR
 	logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "HTTP body size is "+kbpsFloatStringVal)
 
 	// if we want to save the streamed files
-	if saveFilesBool {
+	// NOTICE (Arno Verstraete): this check was disabled for testing
+	// if saveFilesBool
+	if false {
 
 		// Restore the io.ReadCloser to it's original state, if needed
 		body = ioutil.NopCloser(bytes.NewBuffer(myBytes))
