@@ -424,6 +424,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			//StartTime of downloading
 			startTime = time.Now()
 			nextRunTime = time.Now()
+			fmt.Println("STARTTIME_GODASH ", startTime.Unix())
 
 			_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
 
