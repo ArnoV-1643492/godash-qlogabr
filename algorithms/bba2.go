@@ -22,7 +22,9 @@
 package algorithms
 
 import (
-	glob "github.com/uccmisl/godash/global"
+	"fmt"
+	"time"
+
 	"github.com/uccmisl/godash/http"
 	"github.com/uccmisl/godash/utils"
 )
@@ -36,6 +38,8 @@ func CalculateSelectedIndexBba(newThr int, lastDuration int, lastIndex int, maxB
 	lastRate int, thrList *[]int, mpdDuration int, currentMPD http.MPD, currentURL string,
 	currentMPDRepAdaptSet int, segmentNumber int, baseURL string, debugLog bool, downloadTime int, bufferLevel int,
 	highestMPDrepRateIndex int, lowestMPDrepRateIndex int, bandwithList []int, quicBool bool, useTestbedBool bool) int {
+
+	currTime := time.Now()
 
 	*thrList = append(*thrList, newThr)
 
@@ -163,30 +167,35 @@ func CalculateSelectedIndexBba(newThr int, lastDuration int, lastIndex int, maxB
 	//fmt.Println("lastindex: ", lastIndex)
 	//fmt.Println("retval:", retVal)
 	//fmt.Println("m2", mStaticAlgPar)
+	fmt.Println("BBA2 TIME: ", time.Since(currTime).Milliseconds())
 	return retVal
 }
 
 func bba1UpdateReservoir(lastRate int, lastRateIndex int, mpdDuration int,
 	lastSegmentDuration int, maxBufferLevel int, currentMPD http.MPD, currentURL string, currentMPDRepAdaptSet int,
 	segmentNumber int, baseURL string, debugLog bool, bandwithList []int, quicBool bool, useTestbedBool bool) int {
+	//currTime := time.Now()
+
 	//we need to convert the maxBufferLevel to milliseconds
 	//otherwise the comparison is between seconds and milliseconds
 
-	resvWin := utils.Min(2*maxBufferLevel*1000/lastSegmentDuration, (mpdDuration/lastSegmentDuration)-lastRateIndex)
+	//resvWin := utils.Min(2*maxBufferLevel*1000/lastSegmentDuration, (mpdDuration/lastSegmentDuration)-lastRateIndex)
 	//fmt.Println("mpddur:", mpdDuration, "lastrateindex:", lastRateIndex)
 	//fmt.Println("resvWin: ", resvWin)
 
-	avgSegSize := (int(bandwithList[lastRate]/glob.Conversion1000) * lastSegmentDuration) / 8000
+	//avgSegSize := (int(bandwithList[lastRate]/glob.Conversion1000) * lastSegmentDuration) / 8000
 	//fmt.Println("lastrate", lastRate, "lastsegduration" ,lastSegmentDuration)
 	//fmt.Println("averageSegSize: ", avgSegSize)
 
-	largeSeg := 0
-	smallSeg := 0
+	//largeSeg := 0
+	//smallSeg := 0
 
 	// fmt.Println("contlenght", http.GetContentLengthHeader(currentMPD,
 	// 	currentURL, currentMPDRepAdaptSet, lastRate, segmentNumber+1, baseURL, debugLog))
 
-	_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
+	//fmt.Println("RESERVOIR TIME BEFORE HTTP: ", time.Since(currTime).Milliseconds())
+
+	/*_, client, _ := http.GetHTTPClient(quicBool, glob.DebugFile, debugLog, useTestbedBool)
 
 	for i := 0; i < resvWin; i++ {
 		//do a func getSegBySize(lastSegNumber+i, lastRateIndex) and return the size of the segment
@@ -199,14 +208,16 @@ func bba1UpdateReservoir(lastRate int, lastRateIndex int, mpdDuration int,
 			smallSeg += http.GetContentLengthHeader(currentMPD,
 				currentURL, currentMPDRepAdaptSet, lastRate, segmentNumber+i, baseURL, debugLog, client)
 		}
-	}
+	}*/
 
 	//fmt.Println("large", largeSeg, "small", smallSeg, "lastrate", lastRate)
 
 	//fmt.Println(lastSegmentDuration, maxBufferLevel)
 	//fmt.Println("actual representation rate", bandwithList[lastRate]/glob.Conversion1000)
 
-	reservoir := 8 * float64(largeSeg-smallSeg) / float64(bandwithList[lastRate]/glob.Conversion1000)
+	// Arno Verstraete: removing the variable reservoir size to reduce overhead of http content length requests
+	//reservoir := 8 * float64(largeSeg-smallSeg) / float64(bandwithList[lastRate]/glob.Conversion1000)
+	reservoir := float64(0)
 
 	//fmt.Println("res1", reservoir)
 
@@ -217,6 +228,7 @@ func bba1UpdateReservoir(lastRate int, lastRateIndex int, mpdDuration int,
 			reservoir = 0.6 * float64(maxBufferLevel*1000)
 		}
 	}
+	//fmt.Println("RESERVOIR TIME: ", time.Since(currTime).Milliseconds())
 	//fmt.Println("reservoir after calc::", reservoir)
 	return int(reservoir)
 }
