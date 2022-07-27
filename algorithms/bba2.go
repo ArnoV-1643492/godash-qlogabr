@@ -86,14 +86,15 @@ func CalculateSelectedIndexBba(newThr int, lastDuration int, lastIndex int, maxB
 	if downloadTime > lastDuration {
 		mStaticAlgPar = 1
 	}
-	//fmt.Println("bufferLevel: ", bufferLevel)
+	fmt.Println("bufferLevel: ", bufferLevel)
 
 	//fmt.Println("lastindex", lastIndex)
 	//fmt.Println("lastrate", lastRate)
-	//fmt.Println("res", reservoir)
+	fmt.Println("res", reservoir)
+	fmt.Println("buffer size: ", maxBufferLevel)
 	//fmt.Println(downloadTime, lastDuration)
 	if bufferLevel < reservoir {
-		//fmt.Println("buff less than")
+		fmt.Println("buff less than")
 		if mStaticAlgPar != 0 {
 			retVal = lowestBitrateIndex
 			//fmt.Println("retval less than", retVal)
@@ -260,8 +261,12 @@ func bba1VRAA(lastRateIndex int, thrList []int, bufferLevel int, highestMPDrepRa
 		low := LowestBitrate(bandwithList) / 1024
 		high := HighestBitrate(bandwithList) / 1024
 
+		fmt.Println("High: ", high, " low: ", low)
+		fmt.Println("Cushion range: ", 0.9*float64(maxBufferLevel))
+		fmt.Println("Reservoir: ", float64(reservoir))
+
 		//target rate calcul
-		targetRate := (high - low) / (0.9*float64(maxBufferLevel) - float64(reservoir))
+		targetRate := (high - low) / (0.9*float64(maxBufferLevel) - (float64(reservoir) / 1000))
 
 		//optRateIndex = findBestRateIndex(targetRate * 1024)
 		optRateIndex = SelectRepRateWithThroughtput(int((targetRate+1)*1000), bandwithList, lowestMPDrepRateIndex)
