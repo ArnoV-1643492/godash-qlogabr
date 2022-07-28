@@ -94,7 +94,7 @@ var Noden = P2Pconsul.NodeUrl{}
 
 // slices for our encoders, algorithms and HLS
 var codecSlice = []string{glob.RepRateCodecAVC, glob.RepRateCodecHEVC, glob.RepRateCodecVP9, glob.RepRateCodecAV1}
-var algorithmSlice = []string{glob.ConventionalAlg, glob.ElasticAlg, glob.LogisticAlg, glob.TestAlg, glob.ProgressiveAlg, glob.MeanAverageAlg, glob.GeomAverageAlg, glob.EMWAAverageAlg, glob.ArbiterAlg, glob.BBAAlg, glob.MeanAverageXLAlg, glob.MeanAverageRecentXLAlg}
+var algorithmSlice = []string{glob.ConventionalAlg, glob.ElasticAlg, glob.LogisticAlg, glob.TestAlg, glob.ProgressiveAlg, glob.MeanAverageAlg, glob.GeomAverageAlg, glob.EMWAAverageAlg, glob.ArbiterAlg, glob.BBAAlg, glob.MeanAverageXLAlg, glob.MeanAverageRecentXLAlg, glob.BB1AAlg_AV}
 var hlsSlice = []string{glob.HlsOff, glob.HlsOn}
 var storeFilesSlice = []string{glob.StoreFilesOff, glob.StoreFilesOn}
 

@@ -1,8 +1,8 @@
 {
-	"adapt" : "bba",
+	"adapt" : "bba1",
         "debug" : "on",
         "initBuffer" : 2,
-        "maxBuffer" : 20,
+        "maxBuffer" : 40,
         "maxHeight" : 1080,
         "streamDuration" : 180,
         "storeDash" : "on",

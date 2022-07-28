@@ -90,6 +90,9 @@ const EMWAAverageAlg = "exponential"
 // BBAAlg : test constants for our algorithms
 const BBAAlg = "bba"
 
+// Arno Verstraete's BBA1
+const BB1AAlg_AV = "bba1"
+
 // TestAlg : test constants for our algorithms
 const TestAlg = "test"
 
