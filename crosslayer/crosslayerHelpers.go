@@ -99,7 +99,7 @@ func (a *CrossLayerAccountant) stallPredictor() {
 				// Report stall prediction
 				fmt.Println("STALLPREDICTOR ", time.Now().UnixMilli())
 			} else {
-				//fmt.Println("NO STALL")
+				fmt.Println("NO STALL", requiredTime_ms, a.calculateCurrentBufferLevel())
 			}
 		}
 	}
@@ -107,7 +107,7 @@ func (a *CrossLayerAccountant) stallPredictor() {
 
 func (a *CrossLayerAccountant) calculateCurrentBufferLevel() int {
 	passedTime := time.Since(a.time_atStartOfSegment).Milliseconds()
-	return a.bufferLevel_atStartOfSegment_Milliseconds + int(passedTime)
+	return a.bufferLevel_atStartOfSegment_Milliseconds - int(passedTime)
 }
 
 func (a *CrossLayerAccountant) channelListenerThread() {
