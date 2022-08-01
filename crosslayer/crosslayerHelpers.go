@@ -19,6 +19,38 @@ type CrossLayerAccountant struct {
 	totalPassed_ms  int64
 	currentlyTiming bool // Indicates if we are currently downloading and tracking time
 	currStartTime   time.Time
+
+	// Variables for stall prediction
+	predictStall                              bool
+	bufferLevel_atStartOfSegment_Milliseconds int
+	representationBitrate                     int // kbits / second
+	segmentDuration_Milliseconds              int
+	predictionWindow                          int         // number of packets the predictor looks at
+	arrivalTimes                              []time.Time // List of the arrival times of each packet in throughputList
+	time_atStartOfSegment                     time.Time
+}
+
+func (a *CrossLayerAccountant) InitialisePredictor() {
+	fmt.Println("Stall prediction enabled")
+	a.predictionWindow = 100
+	a.predictStall = true
+}
+
+func (a *CrossLayerAccountant) SegmentStart_predictStall(segDuration_ms int, repLevel_kbps int, currBufferLevel int) {
+	a.StartTiming()
+	a.bufferLevel_atStartOfSegment_Milliseconds = currBufferLevel
+	a.time_atStartOfSegment = time.Now()
+	//fmt.Println("PREDICTORBUFFER: ", a.bufferLevel_atStartOfSegment_Milliseconds)
+
+	// Empty the throughput and timing lists
+	a.mu.Lock()
+	//fmt.Println("NUMBEROFPACKETS: ", len(a.throughputList))
+	a.throughputList = nil
+	a.arrivalTimes = nil
+	a.mu.Unlock()
+
+	a.segmentDuration_Milliseconds = segDuration_ms
+	a.representationBitrate = repLevel_kbps
 }
 
 func (a *CrossLayerAccountant) SetTrackingEvents(trackEvents bool) {
@@ -30,6 +62,52 @@ func (a *CrossLayerAccountant) Listen(trackEvents bool) {
 
 	a.SetTrackingEvents(trackEvents)
 	go a.channelListenerThread()
+}
+
+func (a *CrossLayerAccountant) stallPredictor() {
+	// Only do predictions when we have received enough packets
+	if len(a.throughputList) > a.predictionWindow {
+		//fmt.Println("IN PREDICTION WINDOW")
+		a.mu.Lock()
+
+		// Calculate sum of all bits received
+		var sliceOfList []int = a.throughputList[len(a.throughputList)-a.predictionWindow:]
+		var sum int = 0
+		for _, el := range sliceOfList {
+			sum += el
+		}
+		sum_bits := sum * 8
+		predictionWindowStartTime := a.arrivalTimes[len(a.throughputList)-a.predictionWindow]
+
+		// Calculate the average throughput of the prediction window
+		windowTotalTime_ms := time.Since(predictionWindowStartTime).Milliseconds()
+
+		a.mu.Unlock()
+
+		// bits 	:=    (kbps == bpms)   		 / ms
+		segmentSize := (a.representationBitrate) / a.segmentDuration_Milliseconds
+
+		// Only do predictions when we have received less bytes than we expect to receive
+		if sum_bits < segmentSize && windowTotalTime_ms > 0 {
+			bitsToDownload := segmentSize - sum_bits // Number of bytes that need to be downloaded
+			// bits / ms  := bits / ms
+			windowBitrate := sum_bits / int(windowTotalTime_ms)
+			// Time it will take in ms to download the remaining bits at this rate
+			requiredTime_ms := bitsToDownload / windowBitrate
+
+			if requiredTime_ms > a.calculateCurrentBufferLevel() {
+				// Report stall prediction
+				fmt.Println("STALLPREDICTOR ", time.Now().UnixMilli())
+			} else {
+				//fmt.Println("NO STALL")
+			}
+		}
+	}
+}
+
+func (a *CrossLayerAccountant) calculateCurrentBufferLevel() int {
+	passedTime := time.Since(a.time_atStartOfSegment).Milliseconds()
+	return a.bufferLevel_atStartOfSegment_Milliseconds + int(passedTime)
 }
 
 func (a *CrossLayerAccountant) channelListenerThread() {
@@ -46,6 +124,16 @@ func (a *CrossLayerAccountant) channelListenerThread() {
 				a.mu.Lock()
 				a.throughputList = append(a.throughputList, int(packetReceivedPointer.Length))
 				a.mu.Unlock()
+
+				// If we are doing stall predictions, calculate prediction after this packet is received
+				if a.predictStall {
+					// Measure arrival time as well
+					a.mu.Lock()
+					a.arrivalTimes = append(a.arrivalTimes, time.Now())
+					a.mu.Unlock()
+
+					a.stallPredictor()
+				}
 			}
 		}
 	}

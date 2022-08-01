@@ -503,6 +503,10 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 	// print the output log headers
 	logging.PrintHeaders(extendPrintLog, fileDownloadLocation, glob.LogDownload, debugFile, debugLog, printLog, printHeadersData)
 
+	if adapt == glob.BB1AAlg_AV {
+		accountant.InitialisePredictor()
+	}
+
 	// Streaming loop function - using the first MPD index - 0, and hlsUsed false
 	segmentNumber, mapSegmentLogPrintouts = streamLoop(streamStructs, Noden, accountant)
 
@@ -783,7 +787,14 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		// Start Time of this segment
 		currentTime := time.Now()
-		accountant.StartTiming()
+		switch adapt {
+		case glob.MeanAverageXLAlg:
+			accountant.StartTiming()
+		case glob.MeanAverageRecentXLAlg:
+			accountant.StartTiming()
+		case glob.BB1AAlg_AV:
+			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel)
+		}
 
 		// Download the segment - add the segment duration to the file name
 		switch adapt {
