@@ -107,7 +107,11 @@ func (a *CrossLayerAccountant) stallPredictor() {
 
 func (a *CrossLayerAccountant) calculateCurrentBufferLevel() int {
 	passedTime := time.Since(a.time_atStartOfSegment).Milliseconds()
-	return a.bufferLevel_atStartOfSegment_Milliseconds - int(passedTime)
+	level := a.bufferLevel_atStartOfSegment_Milliseconds - int(passedTime)
+
+	fmt.Println("CROSSLAYERBUFFERLEVEL", level, time.Now().UnixMilli())
+
+	return level
 }
 
 func (a *CrossLayerAccountant) channelListenerThread() {
