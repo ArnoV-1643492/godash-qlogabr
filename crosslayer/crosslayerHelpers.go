@@ -111,7 +111,12 @@ func (a *CrossLayerAccountant) calculateCurrentBufferLevel() int {
 
 	fmt.Println("CROSSLAYERBUFFERLEVEL", level, time.Now().UnixMilli())
 
-	return level
+	// Buffer cannot go below 0
+	if level < 0 {
+		return 0
+	} else {
+		return level
+	}
 }
 
 func (a *CrossLayerAccountant) channelListenerThread() {
