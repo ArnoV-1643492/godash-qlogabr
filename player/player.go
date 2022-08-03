@@ -806,7 +806,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.BB1AAlg_AV:
 			accountant.StartTiming()
 		case glob.BB1AAlg_AVXL:
-			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, &aborted)
+			if repRate != lowestMPDrepRateIndex[mimeTypeIndex] {
+				accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, &aborted)
+			}
 		}
 
 		var status int
@@ -871,7 +873,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			// We are testing abortion detection only on BBA_AV right now, so no need to switch over all algorithms to calculate the next representation
 			repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
 
-			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
+			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: After an abort, ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
 			postRepRate := repRate
 			if preRepRate != postRepRate {
