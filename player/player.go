@@ -793,8 +793,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		}
 		// Collaborative Code - End
 
-		ctx := context.Background()
-		ctx.Done()
+		ctx, cancel := context.WithCancel(context.Background())
 
 		// Start Time of this segment
 		currentTime := time.Now()
@@ -806,7 +805,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.BB1AAlg_AV:
 			accountant.StartTiming()
 		case glob.BB1AAlg_AVXL:
-			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, ctx)
+			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel)
 		}
 
 		var status int

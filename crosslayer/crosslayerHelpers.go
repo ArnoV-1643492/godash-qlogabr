@@ -29,7 +29,7 @@ type CrossLayerAccountant struct {
 	predictionWindow                          int         // number of packets the predictor looks at
 	arrivalTimes                              []time.Time // List of the arrival times of each packet in throughputList
 	time_atStartOfSegment                     time.Time
-	m_cancelctx                               context.Context // Is called when the HTTP request needs to be cancelled
+	m_cancel                                  context.CancelFunc // Is called when the HTTP request needs to be cancelled
 }
 
 func (a *CrossLayerAccountant) InitialisePredictor() {
@@ -38,8 +38,8 @@ func (a *CrossLayerAccountant) InitialisePredictor() {
 	a.predictStall = true
 }
 
-func (a *CrossLayerAccountant) SegmentStart_predictStall(segDuration_ms int, repLevel_kbps int, currBufferLevel int, cancelctx context.Context) {
-	a.m_cancelctx = cancelctx
+func (a *CrossLayerAccountant) SegmentStart_predictStall(segDuration_ms int, repLevel_kbps int, currBufferLevel int, cancel context.CancelFunc) {
+	a.m_cancel = cancel
 	a.StartTiming()
 	a.bufferLevel_atStartOfSegment_Milliseconds = currBufferLevel
 	a.time_atStartOfSegment = time.Now()
@@ -101,7 +101,7 @@ func (a *CrossLayerAccountant) stallPredictor() {
 			if requiredTime_ms > a.calculateCurrentBufferLevel() {
 				// Report stall prediction
 				fmt.Println("STALLPREDICTOR ", time.Now().UnixMilli())
-				a.m_cancelctx.Done()
+				a.m_cancel()
 			} else {
 				fmt.Println("NO STALL", requiredTime_ms, a.calculateCurrentBufferLevel())
 			}
