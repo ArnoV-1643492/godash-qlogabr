@@ -794,6 +794,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		// Collaborative Code - End
 
 		ctx, cancel := context.WithCancel(context.Background())
+		aborted := false
 
 		// Start Time of this segment
 		currentTime := time.Now()
@@ -805,7 +806,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.BB1AAlg_AV:
 			accountant.StartTiming()
 		case glob.BB1AAlg_AVXL:
-			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel)
+			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, *aborted)
 		}
 
 		var status int
@@ -918,6 +919,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		if status != 200 {
 			fmt.Println("STATUS:", status)
+		} else if aborted {
+			fmt.Println("ABORTED")
 		} else {
 
 			// check if the buffer level is higher than the max buffer
