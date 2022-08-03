@@ -866,12 +866,15 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 			// calculate the throughtput (we get the segSize while downloading the file)
 			// multiple segSize by 8 to get bits and not bytes
-			thr := algo.CalculateThroughtput(segSize*8, deliveryTime)
+			//thr := algo.CalculateThroughtput(segSize*8, deliveryTime)
 
 			preRepRate := repRate
 
 			// We are testing abortion detection only on BBA_AV right now, so no need to switch over all algorithms to calculate the next representation
-			repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
+			//repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
+			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
+
+			fmt.Println("LOWESTREPRATE", strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
 			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: After an abort, ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
