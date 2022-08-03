@@ -806,7 +806,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.BB1AAlg_AV:
 			accountant.StartTiming()
 		case glob.BB1AAlg_AVXL:
-			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, *aborted)
+			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, &aborted)
 		}
 
 		var status int
