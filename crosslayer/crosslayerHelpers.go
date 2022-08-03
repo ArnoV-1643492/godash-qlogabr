@@ -71,7 +71,7 @@ func (a *CrossLayerAccountant) Listen(trackEvents bool) {
 
 func (a *CrossLayerAccountant) stallPredictor() {
 	// Only do predictions when we have received enough packets
-	if len(a.throughputList) > a.predictionWindow {
+	if len(a.throughputList) > a.predictionWindow && a.segmentDuration_Milliseconds > 0 {
 		//fmt.Println("IN PREDICTION WINDOW")
 		a.mu.Lock()
 
