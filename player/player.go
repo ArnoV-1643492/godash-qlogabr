@@ -793,7 +793,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		}
 		// Collaborative Code - End
 
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx := context.Background()
+		ctx.Done()
 
 		// Start Time of this segment
 		currentTime := time.Now()
@@ -805,7 +806,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.BB1AAlg_AV:
 			accountant.StartTiming()
 		case glob.BB1AAlg_AVXL:
-			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel)
+			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, ctx)
 		}
 
 		var status int
@@ -843,82 +844,82 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		}
 
+		//fmt.Println("segSize: ", segSize)
+
+		// arrival and delivery times for this segment
+		arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+		deliveryTime := int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
+		thisRunTimeVal := int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+
+		nextRunTime = time.Now()
+
+		//fmt.Println("deliveryTime: ", deliveryTime)
+		accountant.StopTiming()
+
+		// some times we want to wait for an initial number of segments before stream begins
+		// no need to do asny printouts when we are replacing this chunk
+		// && !hlsReplaced
+		if initBuffer <= waitToPlayCounter {
+
+			if !currently_playing {
+				currently_playing = true
+				playhead := abrqlog.NewPlayheadStatus()
+				playhead.PlayheadTime = 0
+				playhead.PlayheadFrame = 0
+				abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, streamSpeed)
+			}
+
+			// get the segment less the initial buffer
+			// this needs to be based on running time and not based on number segments
+			// I'll need a function for this
+			//playoutSegmentNumber := segmentNumber - initBuffer
+
+			// only print this out if we are not hls replaced
+			if !hlsUsed {
+				// print out the content of the segment that is currently passed to the player
+				var printLogs []map[int]logging.SegPrintLogInformation
+				printLogs = append(printLogs, mapSegmentLogPrintout)
+				logging.PrintPlayOutLog(arrivalTime, initBuffer, printLogs, glob.LogDownload, printLog, printHeadersData)
+			}
+
+			// get the current buffer (excluding the current segment)
+			currentBuffer := (bufferLevel - int(float64(thisRunTimeVal)*streamSpeed))
+
+			// if we have a buffer level then we have no stalls
+			if currentBuffer >= 0 {
+				stallTime = 0
+
+				// if the buffer is empty, then we need to calculate
+			} else {
+				stallTime = currentBuffer
+
+				playhead := abrqlog.NewPlayheadStatus()
+				playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+				abrqlog.MainTracer.Rebuffer(playhead)
+
+				bufferStats := abrqlog.NewBufferStats()
+				bufferStats.PlayoutTime = time.Duration(0)
+				bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
+				abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
+					bufferStats)
+			}
+
+			// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
+			bufferLevel = utils.Max(bufferLevel-int(float64(thisRunTimeVal)*streamSpeed), 0) + (segmentDuration * glob.Conversion1000)
+
+			// increment the waitToPlayCounter
+			waitToPlayCounter++
+
+		} else {
+			// add to the current buffer before we start to play
+			bufferLevel += (segmentDuration * glob.Conversion1000)
+			// increment the waitToPlayCounter
+			waitToPlayCounter++
+		}
+
 		if status != 200 {
 			fmt.Println("STATUS:", status)
 		} else {
-
-			//fmt.Println("segSize: ", segSize)
-
-			// arrival and delivery times for this segment
-			arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
-			deliveryTime := int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
-			thisRunTimeVal := int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
-
-			nextRunTime = time.Now()
-
-			//fmt.Println("deliveryTime: ", deliveryTime)
-			accountant.StopTiming()
-
-			// some times we want to wait for an initial number of segments before stream begins
-			// no need to do asny printouts when we are replacing this chunk
-			// && !hlsReplaced
-			if initBuffer <= waitToPlayCounter {
-
-				if !currently_playing {
-					currently_playing = true
-					playhead := abrqlog.NewPlayheadStatus()
-					playhead.PlayheadTime = 0
-					playhead.PlayheadFrame = 0
-					abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, streamSpeed)
-				}
-
-				// get the segment less the initial buffer
-				// this needs to be based on running time and not based on number segments
-				// I'll need a function for this
-				//playoutSegmentNumber := segmentNumber - initBuffer
-
-				// only print this out if we are not hls replaced
-				if !hlsUsed {
-					// print out the content of the segment that is currently passed to the player
-					var printLogs []map[int]logging.SegPrintLogInformation
-					printLogs = append(printLogs, mapSegmentLogPrintout)
-					logging.PrintPlayOutLog(arrivalTime, initBuffer, printLogs, glob.LogDownload, printLog, printHeadersData)
-				}
-
-				// get the current buffer (excluding the current segment)
-				currentBuffer := (bufferLevel - int(float64(thisRunTimeVal)*streamSpeed))
-
-				// if we have a buffer level then we have no stalls
-				if currentBuffer >= 0 {
-					stallTime = 0
-
-					// if the buffer is empty, then we need to calculate
-				} else {
-					stallTime = currentBuffer
-
-					playhead := abrqlog.NewPlayheadStatus()
-					playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
-					abrqlog.MainTracer.Rebuffer(playhead)
-
-					bufferStats := abrqlog.NewBufferStats()
-					bufferStats.PlayoutTime = time.Duration(0)
-					bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
-					abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
-						bufferStats)
-				}
-
-				// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
-				bufferLevel = utils.Max(bufferLevel-int(float64(thisRunTimeVal)*streamSpeed), 0) + (segmentDuration * glob.Conversion1000)
-
-				// increment the waitToPlayCounter
-				waitToPlayCounter++
-
-			} else {
-				// add to the current buffer before we start to play
-				bufferLevel += (segmentDuration * glob.Conversion1000)
-				// increment the waitToPlayCounter
-				waitToPlayCounter++
-			}
 
 			// check if the buffer level is higher than the max buffer
 			if bufferLevel > maxBuffer*glob.Conversion1000 {
