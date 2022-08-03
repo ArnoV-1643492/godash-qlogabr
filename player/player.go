@@ -24,6 +24,7 @@
 package player
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
@@ -350,20 +351,22 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			}
 			// Collaborative Code - End
 
+			ctx2 := context.Background()
+
 			// determine the inital variables to set, based on the algorithm choice
 			switch adapt {
 			case glob.ConventionalAlg:
 				// there is no byte range in this file, so we set byte-range bool to false
 				// we don't want to add the seg duration to this file, so 'addSegDuration' is false
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 				// set the inital rep_rate to the lowest value index
 				repRate = l_lowestMPDrepRateIndex
 			case glob.ElasticAlg:
 				//fmt.Println("Elastic / in player.go")
 				//fmt.Println("currentURL: ", currentURL)
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 				repRate = l_lowestMPDrepRateIndex
 				///fmt.Println("MPD file repRate index: ", repRate)
 				//fmt.Println("MPD file bandwithList[repRate]", bandwithList[repRate])
@@ -374,7 +377,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			case glob.TestAlg:
 				fmt.Println("testAlg / in player.go")
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, AudioByteRange, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 
 				//fmt.Println("lowestmpd: ", lowestMPDrepRateIndex)
 				repRate = l_lowestMPDrepRateIndex
@@ -382,39 +385,44 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 			case glob.BBAAlg:
 				//fmt.Println("BBAAlg / in player.go")
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 
 				repRate = l_lowestMPDrepRateIndex
 
 			case glob.ArbiterAlg:
 				//fmt.Println("ArbiterAlg / in player.go")
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 
 				repRate = l_lowestMPDrepRateIndex
 
 			case glob.LogisticAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 				repRate = l_lowestMPDrepRateIndex
 			case glob.MeanAverageAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 			case glob.GeomAverageAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 			case glob.EMWAAverageAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 			case glob.MeanAverageXLAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 			case glob.MeanAverageRecentXLAlg:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 			case glob.BB1AAlg_AV:
 				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
-					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType)
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
+
+				repRate = l_lowestMPDrepRateIndex
+			case glob.BB1AAlg_AVXL:
+				http.GetFile(currentURL, baseJoined, fileDownloadLocation, false, startRange, endRange, segmentNumber,
+					segmentDuration, true, quicBool, debugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, currentMediaType, ctx2)
 
 				repRate = l_lowestMPDrepRateIndex
 			}
@@ -503,7 +511,7 @@ func Stream(mpdList []http.MPD, debugFile string, debugLog bool, codec string, c
 	// print the output log headers
 	logging.PrintHeaders(extendPrintLog, fileDownloadLocation, glob.LogDownload, debugFile, debugLog, printLog, printHeadersData)
 
-	if adapt == glob.BB1AAlg_AV {
+	if adapt == glob.BB1AAlg_AVXL {
 		accountant.InitialisePredictor()
 	}
 
@@ -785,6 +793,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		}
 		// Collaborative Code - End
 
+		ctx, cancel := context.WithCancel(context.Background())
+
 		// Start Time of this segment
 		currentTime := time.Now()
 		switch adapt {
@@ -793,477 +803,491 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		case glob.MeanAverageRecentXLAlg:
 			accountant.StartTiming()
 		case glob.BB1AAlg_AV:
-			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel)
+			accountant.StartTiming()
+		case glob.BB1AAlg_AVXL:
+			accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel)
 		}
+
+		var status int
 
 		// Download the segment - add the segment duration to the file name
 		switch adapt {
 		case glob.ConventionalAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.ElasticAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.ProgressiveAlg:
 			rtt, segSize = http.GetFileProgressively(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, debugLog, AudioByteRange, profile)
 		case glob.LogisticAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.MeanAverageAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.GeomAverageAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.EMWAAverageAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.TestAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.ArbiterAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.BBAAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.MeanAverageXLAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.MeanAverageRecentXLAlg:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 		case glob.BB1AAlg_AV:
-			rtt, segSize, protocol, segmentFileName, P1203Header = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex])
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
+		case glob.BB1AAlg_AVXL:
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctx)
 
 		}
 
-		//fmt.Println("segSize: ", segSize)
-
-		// arrival and delivery times for this segment
-		arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
-		deliveryTime := int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
-		thisRunTimeVal := int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
-
-		nextRunTime = time.Now()
-
-		//fmt.Println("deliveryTime: ", deliveryTime)
-		accountant.StopTiming()
-
-		// some times we want to wait for an initial number of segments before stream begins
-		// no need to do asny printouts when we are replacing this chunk
-		// && !hlsReplaced
-		if initBuffer <= waitToPlayCounter {
-
-			if !currently_playing {
-				currently_playing = true
-				playhead := abrqlog.NewPlayheadStatus()
-				playhead.PlayheadTime = 0
-				playhead.PlayheadFrame = 0
-				abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, streamSpeed)
-			}
-
-			// get the segment less the initial buffer
-			// this needs to be based on running time and not based on number segments
-			// I'll need a function for this
-			//playoutSegmentNumber := segmentNumber - initBuffer
-
-			// only print this out if we are not hls replaced
-			if !hlsUsed {
-				// print out the content of the segment that is currently passed to the player
-				var printLogs []map[int]logging.SegPrintLogInformation
-				printLogs = append(printLogs, mapSegmentLogPrintout)
-				logging.PrintPlayOutLog(arrivalTime, initBuffer, printLogs, glob.LogDownload, printLog, printHeadersData)
-			}
-
-			// get the current buffer (excluding the current segment)
-			currentBuffer := (bufferLevel - int(float64(thisRunTimeVal)*streamSpeed))
-
-			// if we have a buffer level then we have no stalls
-			if currentBuffer >= 0 {
-				stallTime = 0
-
-				// if the buffer is empty, then we need to calculate
-			} else {
-				stallTime = currentBuffer
-
-				playhead := abrqlog.NewPlayheadStatus()
-				playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
-				abrqlog.MainTracer.Rebuffer(playhead)
-
-				bufferStats := abrqlog.NewBufferStats()
-				bufferStats.PlayoutTime = time.Duration(0)
-				bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
-				abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
-					bufferStats)
-			}
-
-			// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
-			bufferLevel = utils.Max(bufferLevel-int(float64(thisRunTimeVal)*streamSpeed), 0) + (segmentDuration * glob.Conversion1000)
-
-			// increment the waitToPlayCounter
-			waitToPlayCounter++
-
+		if status != 200 {
+			fmt.Println("STATUS:", status)
 		} else {
-			// add to the current buffer before we start to play
-			bufferLevel += (segmentDuration * glob.Conversion1000)
-			// increment the waitToPlayCounter
-			waitToPlayCounter++
-		}
 
-		// check if the buffer level is higher than the max buffer
-		if bufferLevel > maxBuffer*glob.Conversion1000 {
-			// retrieve the time it is going to sleep from the buffer level
-			// sleep until the max buffer level is reached
-			sleepTime := int(float64(bufferLevel-(maxBuffer*glob.Conversion1000)) / streamSpeed)
-			// sleep
-			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
+			//fmt.Println("segSize: ", segSize)
 
-			// reset the buffer to the new value less sleep time - should equal maxBuffer
-			bufferLevel -= int(float64(sleepTime) * streamSpeed)
-		}
+			// arrival and delivery times for this segment
+			arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+			deliveryTime := int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
+			thisRunTimeVal := int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
 
-		// some times we want to wait for an initial number of segments before stream begins
-		// if we are going to print out some additonal log headers, then get these values
-		if extendPrintLog && initBuffer < waitToPlayCounter {
-			// base the play out position on the buffer level
-			playPosition = segmentDurationTotal + (segmentDuration * glob.Conversion1000) - bufferLevel
-			// we need to keep a tab on the different size segments - use this for now
-			segmentDurationTotal += (segmentDuration * glob.Conversion1000)
-		} else {
-			segmentDurationTotal += (segmentDuration * glob.Conversion1000)
-		}
+			nextRunTime = time.Now()
 
-		// if we are going to print out some additonal log headers, then get these values
-		if extendPrintLog {
+			//fmt.Println("deliveryTime: ", deliveryTime)
+			accountant.StopTiming()
 
-			// get the current codec
-			repCodec = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].Codecs
+			// some times we want to wait for an initial number of segments before stream begins
+			// no need to do asny printouts when we are replacing this chunk
+			// && !hlsReplaced
+			if initBuffer <= waitToPlayCounter {
 
-			// change the codec into something we can understand
-			// switch {
-			// case strings.Contains(repCodec, "avc"):
-			// 	// set the inital rep_rate to the lowest value
-			// 	repCodec = glob.RepRateCodecAVC
-			// case strings.Contains(repCodec, "hev"):
-			// 	repCodec = glob.RepRateCodecHEVC
-			// case strings.Contains(repCodec, "vp"):
-			// 	repCodec = glob.RepRateCodecVP9
-			// case strings.Contains(repCodec, "av1"):
-			// 	repCodec = glob.RepRateCodecAV1
-			// }
-
-			switch {
-			case strings.Contains(repCodec, "avc"):
-				repCodec = glob.RepRateCodecAVC
-			case strings.Contains(repCodec, "hev"):
-				repCodec = glob.RepRateCodecHEVC
-			case strings.Contains(repCodec, "hvc1"):
-				repCodec = glob.RepRateCodecHEVC
-			case strings.Contains(repCodec, "vp"):
-				repCodec = glob.RepRateCodecVP9
-			case strings.Contains(repCodec, "av1"):
-				repCodec = glob.RepRateCodecAV1
-			case strings.Contains(repCodec, "mp4a"):
-				repCodec = glob.RepRateCodecAudio
-			case strings.Contains(repCodec, "ac-3"):
-				repCodec = glob.RepRateCodecAudio
-			}
-
-			// get rep_rate height, width and frames per second
-			repHeight = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].Height
-			repWidth = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].Width
-			repFps = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].FrameRate
-		}
-
-		// calculate the throughtput (we get the segSize while downloading the file)
-		// multiple segSize by 8 to get bits and not bytes
-		thr := algo.CalculateThroughtput(segSize*8, deliveryTime)
-		//fmt.Println("THROUGHPUT: ", strconv.Itoa(thr))
-
-		// save the bitrate from the input segment (less the header info)
-		var kbps float64
-		if getQoEBool {
-			if val, ok := printHeadersData[glob.P1203Header]; ok {
-				if val == "on" || val == "On" {
-
-					// we use this to read from a file
-					// kbps = qoe.GetKBPS(segmentFileName, int64(segmentDuration), debugLog, isByteRangeMPD, segSize)
-
-					// we do this to read from our buffer values
-					kbps = P1203Header
+				if !currently_playing {
+					currently_playing = true
+					playhead := abrqlog.NewPlayheadStatus()
+					playhead.PlayheadTime = 0
+					playhead.PlayheadFrame = 0
+					abrqlog.MainTracer.PlayerInteraction(abrqlog.InteractionStatePlay, playhead, streamSpeed)
 				}
-			}
-			// lets move the logic setup for the QoE values from the algorithms to player
-			// we don't need to save the segRate as this is also called 'Bandwidth'
-			// segRate := float64(log[j].Bandwidth)
 
-			// add this to the seg rate slice
-			if segmentNumber > 1 {
-				// append to the segRates list
-				segRates = append(mapSegmentLogPrintout[segmentNumber-1].SegmentRates, float64(bandwithList[repRate]))
-				// sum the seg rates
-				sumSegRate = mapSegmentLogPrintout[segmentNumber-1].SumSegRate + float64(bandwithList[repRate])
-				// sum the total stall duration
-				totalStallDur = float64(mapSegmentLogPrintout[segmentNumber-1].StallTime) + float64(stallTime)
-				// get the number of stalls
-				if stallTime > 0 {
-					// increment the number of stalls
-					nStalls = mapSegmentLogPrintout[segmentNumber-1].NumStalls + 1
+				// get the segment less the initial buffer
+				// this needs to be based on running time and not based on number segments
+				// I'll need a function for this
+				//playoutSegmentNumber := segmentNumber - initBuffer
+
+				// only print this out if we are not hls replaced
+				if !hlsUsed {
+					// print out the content of the segment that is currently passed to the player
+					var printLogs []map[int]logging.SegPrintLogInformation
+					printLogs = append(printLogs, mapSegmentLogPrintout)
+					logging.PrintPlayOutLog(arrivalTime, initBuffer, printLogs, glob.LogDownload, printLog, printHeadersData)
+				}
+
+				// get the current buffer (excluding the current segment)
+				currentBuffer := (bufferLevel - int(float64(thisRunTimeVal)*streamSpeed))
+
+				// if we have a buffer level then we have no stalls
+				if currentBuffer >= 0 {
+					stallTime = 0
+
+					// if the buffer is empty, then we need to calculate
 				} else {
-					// otherwise save the number of stalls from the previous log
-					nStalls = mapSegmentLogPrintout[segmentNumber-1].NumStalls
+					stallTime = currentBuffer
+
+					playhead := abrqlog.NewPlayheadStatus()
+					playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+					abrqlog.MainTracer.Rebuffer(playhead)
+
+					bufferStats := abrqlog.NewBufferStats()
+					bufferStats.PlayoutTime = time.Duration(0)
+					bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
+					abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
+						bufferStats)
 				}
-				// get the number of switches
-				if bandwithList[repRate] == mapSegmentLogPrintout[segmentNumber-1].Bandwidth {
-					// store the previous value of switches
-					nSwitches = mapSegmentLogPrintout[segmentNumber-1].NumSwitches
-				} else {
-					// increment the number of switches
-					nSwitches = mapSegmentLogPrintout[segmentNumber-1].NumSwitches + 1
-				}
-				rateDifference = math.Abs(float64(bandwithList[repRate]) - float64(mapSegmentLogPrintout[segmentNumber-1].Bandwidth))
-				sumRateChange = mapSegmentLogPrintout[segmentNumber-1].SumRateChange + rateDifference
-				rateChange = append(mapSegmentLogPrintout[segmentNumber-1].RateChange, rateDifference)
+
+				// To have the bufferLevel we take the max between the remaining buffer and 0, we add the duration of the segment we downloaded
+				bufferLevel = utils.Max(bufferLevel-int(float64(thisRunTimeVal)*streamSpeed), 0) + (segmentDuration * glob.Conversion1000)
+
+				// increment the waitToPlayCounter
+				waitToPlayCounter++
 
 			} else {
+				// add to the current buffer before we start to play
+				bufferLevel += (segmentDuration * glob.Conversion1000)
+				// increment the waitToPlayCounter
+				waitToPlayCounter++
+			}
 
-				// otherwise create the list
-				segRates = append(segRates, float64(bandwithList[repRate]))
-				// sum the seg rates
-				sumSegRate = float64(bandwithList[repRate])
-				// sum the total stall duration
-				totalStallDur = float64(stallTime)
-				// get the number of stalls
-				if stallTime > 0 {
-					// increment the number of stalls
-					nStalls = 1
+			// check if the buffer level is higher than the max buffer
+			if bufferLevel > maxBuffer*glob.Conversion1000 {
+				// retrieve the time it is going to sleep from the buffer level
+				// sleep until the max buffer level is reached
+				sleepTime := int(float64(bufferLevel-(maxBuffer*glob.Conversion1000)) / streamSpeed)
+				// sleep
+				time.Sleep(time.Duration(sleepTime) * time.Millisecond)
+
+				// reset the buffer to the new value less sleep time - should equal maxBuffer
+				bufferLevel -= int(float64(sleepTime) * streamSpeed)
+			}
+
+			// some times we want to wait for an initial number of segments before stream begins
+			// if we are going to print out some additonal log headers, then get these values
+			if extendPrintLog && initBuffer < waitToPlayCounter {
+				// base the play out position on the buffer level
+				playPosition = segmentDurationTotal + (segmentDuration * glob.Conversion1000) - bufferLevel
+				// we need to keep a tab on the different size segments - use this for now
+				segmentDurationTotal += (segmentDuration * glob.Conversion1000)
+			} else {
+				segmentDurationTotal += (segmentDuration * glob.Conversion1000)
+			}
+
+			// if we are going to print out some additonal log headers, then get these values
+			if extendPrintLog {
+
+				// get the current codec
+				repCodec = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].Codecs
+
+				// change the codec into something we can understand
+				// switch {
+				// case strings.Contains(repCodec, "avc"):
+				// 	// set the inital rep_rate to the lowest value
+				// 	repCodec = glob.RepRateCodecAVC
+				// case strings.Contains(repCodec, "hev"):
+				// 	repCodec = glob.RepRateCodecHEVC
+				// case strings.Contains(repCodec, "vp"):
+				// 	repCodec = glob.RepRateCodecVP9
+				// case strings.Contains(repCodec, "av1"):
+				// 	repCodec = glob.RepRateCodecAV1
+				// }
+
+				switch {
+				case strings.Contains(repCodec, "avc"):
+					repCodec = glob.RepRateCodecAVC
+				case strings.Contains(repCodec, "hev"):
+					repCodec = glob.RepRateCodecHEVC
+				case strings.Contains(repCodec, "hvc1"):
+					repCodec = glob.RepRateCodecHEVC
+				case strings.Contains(repCodec, "vp"):
+					repCodec = glob.RepRateCodecVP9
+				case strings.Contains(repCodec, "av1"):
+					repCodec = glob.RepRateCodecAV1
+				case strings.Contains(repCodec, "mp4a"):
+					repCodec = glob.RepRateCodecAudio
+				case strings.Contains(repCodec, "ac-3"):
+					repCodec = glob.RepRateCodecAudio
+				}
+
+				// get rep_rate height, width and frames per second
+				repHeight = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].Height
+				repWidth = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].Width
+				repFps = mpdList[mpdListIndex].Periods[0].AdaptationSet[mimeTypes[mimeTypeIndex]].Representation[repRate].FrameRate
+			}
+
+			// calculate the throughtput (we get the segSize while downloading the file)
+			// multiple segSize by 8 to get bits and not bytes
+			thr := algo.CalculateThroughtput(segSize*8, deliveryTime)
+			//fmt.Println("THROUGHPUT: ", strconv.Itoa(thr))
+
+			// save the bitrate from the input segment (less the header info)
+			var kbps float64
+			if getQoEBool {
+				if val, ok := printHeadersData[glob.P1203Header]; ok {
+					if val == "on" || val == "On" {
+
+						// we use this to read from a file
+						// kbps = qoe.GetKBPS(segmentFileName, int64(segmentDuration), debugLog, isByteRangeMPD, segSize)
+
+						// we do this to read from our buffer values
+						kbps = P1203Header
+					}
+				}
+				// lets move the logic setup for the QoE values from the algorithms to player
+				// we don't need to save the segRate as this is also called 'Bandwidth'
+				// segRate := float64(log[j].Bandwidth)
+
+				// add this to the seg rate slice
+				if segmentNumber > 1 {
+					// append to the segRates list
+					segRates = append(mapSegmentLogPrintout[segmentNumber-1].SegmentRates, float64(bandwithList[repRate]))
+					// sum the seg rates
+					sumSegRate = mapSegmentLogPrintout[segmentNumber-1].SumSegRate + float64(bandwithList[repRate])
+					// sum the total stall duration
+					totalStallDur = float64(mapSegmentLogPrintout[segmentNumber-1].StallTime) + float64(stallTime)
+					// get the number of stalls
+					if stallTime > 0 {
+						// increment the number of stalls
+						nStalls = mapSegmentLogPrintout[segmentNumber-1].NumStalls + 1
+					} else {
+						// otherwise save the number of stalls from the previous log
+						nStalls = mapSegmentLogPrintout[segmentNumber-1].NumStalls
+					}
+					// get the number of switches
+					if bandwithList[repRate] == mapSegmentLogPrintout[segmentNumber-1].Bandwidth {
+						// store the previous value of switches
+						nSwitches = mapSegmentLogPrintout[segmentNumber-1].NumSwitches
+					} else {
+						// increment the number of switches
+						nSwitches = mapSegmentLogPrintout[segmentNumber-1].NumSwitches + 1
+					}
+					rateDifference = math.Abs(float64(bandwithList[repRate]) - float64(mapSegmentLogPrintout[segmentNumber-1].Bandwidth))
+					sumRateChange = mapSegmentLogPrintout[segmentNumber-1].SumRateChange + rateDifference
+					rateChange = append(mapSegmentLogPrintout[segmentNumber-1].RateChange, rateDifference)
+
 				} else {
-					// otherwise set to zero (may not be needed, go might default to zero)
-					nStalls = 0
+
+					// otherwise create the list
+					segRates = append(segRates, float64(bandwithList[repRate]))
+					// sum the seg rates
+					sumSegRate = float64(bandwithList[repRate])
+					// sum the total stall duration
+					totalStallDur = float64(stallTime)
+					// get the number of stalls
+					if stallTime > 0 {
+						// increment the number of stalls
+						nStalls = 1
+					} else {
+						// otherwise set to zero (may not be needed, go might default to zero)
+						nStalls = 0
+					}
+					// get the number of switches
+					nSwitches = 0
 				}
-				// get the number of switches
-				nSwitches = 0
 			}
-		}
 
-		// Print to output log
-		//printLog(strconv.Itoa(segmentNumber), strconv.Itoa(arrivalTime), strconv.Itoa(deliveryTime), strconv.Itoa(Abs(stallTime)), strconv.Itoa(bandwithList[repRate]/1000), strconv.Itoa((segSize*8)/deliveryTime), strconv.Itoa((segSize*8)/(segmentDuration*1000)), strconv.Itoa(segSize), strconv.Itoa(bufferLevel), adapt, strconv.Itoa(segmentDuration*1000), extendPrintLog, repCodec, strconv.Itoa(repWidth), strconv.Itoa(repHeight), strconv.Itoa(repFps), strconv.Itoa(playPosition), strconv.FormatFloat(float64(rtt.Nanoseconds())/1000000, 'f', 3, 64), fileDownloadLocation)
+			// Print to output log
+			//printLog(strconv.Itoa(segmentNumber), strconv.Itoa(arrivalTime), strconv.Itoa(deliveryTime), strconv.Itoa(Abs(stallTime)), strconv.Itoa(bandwithList[repRate]/1000), strconv.Itoa((segSize*8)/deliveryTime), strconv.Itoa((segSize*8)/(segmentDuration*1000)), strconv.Itoa(segSize), strconv.Itoa(bufferLevel), adapt, strconv.Itoa(segmentDuration*1000), extendPrintLog, repCodec, strconv.Itoa(repWidth), strconv.Itoa(repHeight), strconv.Itoa(repFps), strconv.Itoa(playPosition), strconv.FormatFloat(float64(rtt.Nanoseconds())/1000000, 'f', 3, 64), fileDownloadLocation)
 
-		// store the current segment log output information in a map
-		printInformation := logging.SegPrintLogInformation{
-			ArrivalTime:          arrivalTime,
-			DeliveryTime:         deliveryTime,
-			StallTime:            stallTime,
-			Bandwidth:            bandwithList[repRate],
-			DelRate:              thr,
-			ActRate:              (segSize * 8) / (segmentDuration * glob.Conversion1000),
-			SegSize:              segSize,
-			P1203HeaderSize:      P1203Header,
-			BufferLevel:          bufferLevel,
-			Adapt:                adapt,
-			SegmentDuration:      segmentDuration,
-			ExtendPrintLog:       extendPrintLog,
-			RepCodec:             repCodec,
-			RepWidth:             repWidth,
-			RepHeight:            repHeight,
-			RepFps:               repFps,
-			PlayStartPosition:    segmentDurationTotal,
-			PlaybackTime:         playPosition,
-			Rtt:                  float64(rtt.Nanoseconds()) / (glob.Conversion1000 * glob.Conversion1000),
-			FileDownloadLocation: fileDownloadLocation,
-			RepIndex:             repRate,
-			MpdIndex:             mpdListIndex,
-			AdaptIndex:           mimeTypes[mimeTypeIndex],
-			SegmentIndex:         nextSegmentNumber,
-			SegReplace:           hlsReplaced,
-			Played:               false,
-			HTTPprotocol:         protocol,
-			P1203Kbps:            kbps,
-			SegmentFileName:      segmentFileName,
-			SegmentRates:         segRates,
-			SumSegRate:           sumSegRate,
-			TotalStallDur:        totalStallDur,
-			NumStalls:            nStalls,
-			NumSwitches:          nSwitches,
-			RateDifference:       rateDifference,
-			SumRateChange:        sumRateChange,
-			RateChange:           rateChange,
-			MimeType:             mimeType,
-			Profile:              profile,
-		}
+			// store the current segment log output information in a map
+			printInformation := logging.SegPrintLogInformation{
+				ArrivalTime:          arrivalTime,
+				DeliveryTime:         deliveryTime,
+				StallTime:            stallTime,
+				Bandwidth:            bandwithList[repRate],
+				DelRate:              thr,
+				ActRate:              (segSize * 8) / (segmentDuration * glob.Conversion1000),
+				SegSize:              segSize,
+				P1203HeaderSize:      P1203Header,
+				BufferLevel:          bufferLevel,
+				Adapt:                adapt,
+				SegmentDuration:      segmentDuration,
+				ExtendPrintLog:       extendPrintLog,
+				RepCodec:             repCodec,
+				RepWidth:             repWidth,
+				RepHeight:            repHeight,
+				RepFps:               repFps,
+				PlayStartPosition:    segmentDurationTotal,
+				PlaybackTime:         playPosition,
+				Rtt:                  float64(rtt.Nanoseconds()) / (glob.Conversion1000 * glob.Conversion1000),
+				FileDownloadLocation: fileDownloadLocation,
+				RepIndex:             repRate,
+				MpdIndex:             mpdListIndex,
+				AdaptIndex:           mimeTypes[mimeTypeIndex],
+				SegmentIndex:         nextSegmentNumber,
+				SegReplace:           hlsReplaced,
+				Played:               false,
+				HTTPprotocol:         protocol,
+				P1203Kbps:            kbps,
+				SegmentFileName:      segmentFileName,
+				SegmentRates:         segRates,
+				SumSegRate:           sumSegRate,
+				TotalStallDur:        totalStallDur,
+				NumStalls:            nStalls,
+				NumSwitches:          nSwitches,
+				RateDifference:       rateDifference,
+				SumRateChange:        sumRateChange,
+				RateChange:           rateChange,
+				MimeType:             mimeType,
+				Profile:              profile,
+			}
 
-		// this saves per segment number so from 1 on, and not 0 on
-		// remember this :)
-		mapSegmentLogPrintout[segmentNumber] = printInformation
+			// this saves per segment number so from 1 on, and not 0 on
+			// remember this :)
+			mapSegmentLogPrintout[segmentNumber] = printInformation
 
-		// if we want to create QoE, then pass in the printInformation and save the QoE values to log
-		// don't save json when using collaborative
-		var saveCollabFilesBool bool
-		if Noden.ClientName != glob.CollabPrintOff && Noden.ClientName != "" {
-			saveCollabFilesBool = false
-		} else {
-			saveCollabFilesBool = saveFilesBool
-		}
-		if getQoEBool {
-			qoe.CreateQoE(&mapSegmentLogPrintout, debugLog, initBuffer, bandwithList[highestMPDrepRateIndex[mimeTypeIndex]], printHeadersData, saveCollabFilesBool, audioRate, audioCodec)
-		}
+			// if we want to create QoE, then pass in the printInformation and save the QoE values to log
+			// don't save json when using collaborative
+			var saveCollabFilesBool bool
+			if Noden.ClientName != glob.CollabPrintOff && Noden.ClientName != "" {
+				saveCollabFilesBool = false
+			} else {
+				saveCollabFilesBool = saveFilesBool
+			}
+			if getQoEBool {
+				qoe.CreateQoE(&mapSegmentLogPrintout, debugLog, initBuffer, bandwithList[highestMPDrepRateIndex[mimeTypeIndex]], printHeadersData, saveCollabFilesBool, audioRate, audioCodec)
+			}
 
-		preRepRate := repRate
+			preRepRate := repRate
 
-		fmt.Println("BUFFERLEVEL: ", bufferLevel)
+			fmt.Println("BUFFERLEVEL: ", bufferLevel)
 
-		// to calculate throughtput and select the repRate from it (in algorithm.go)
-		switch adapt {
-		//Conventional Algo
-		case glob.ConventionalAlg:
-			//fmt.Println("old: ", repRate)
-			algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
-			//fmt.Println("new: ", repRate)
-			//Harmonic Mean Algo
-		case glob.ElasticAlg:
-			//fmt.Println("old repRate index: ", repRate)
-			//fmt.Println("old bandwithList[repRate]", bandwithList[repRate])
-			algo.ElasticAlgo(&thrList, thr, deliveryTime, maxBuffer, &repRate, bandwithList, &staticAlgParameter, bufferLevel, kP, kI, lowestMPDrepRateIndex[mimeTypeIndex])
-			//fmt.Println("new repRate index: ", repRate)
-			//fmt.Println("new bandwithList[repRate]", bandwithList[repRate])
-			//fmt.Println("elastic segmentNumber: ", segmentNumber)
-			//fmt.Println("segURL: ", segURL)
-		//Progressive Algo
-		case glob.ProgressiveAlg:
-			// fmt.Println("old: ", repRate)
-			algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
-			// fmt.Println("new: ", repRate)
-		//Logistic Algo
-		case glob.LogisticAlg:
-			// fmt.Println("old: ", repRate)
-			algo.Logistic(&thrList, thr, &repRate, bandwithList, bufferLevel,
-				highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], glob.DebugFile, debugLog,
-				maxBufferLevel)
-			// fmt.Println("new: ", repRate)
-			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "reprate returned: "+strconv.Itoa(repRate))
-		//Mean Average Algo
-		case glob.MeanAverageAlg:
-			//fmt.Println("old: ", repRate)
-			algo.MeanAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
-			//fmt.Println("new: ", repRate)
-		//Geometric Average Algo
-		case glob.GeomAverageAlg:
-			//fmt.Println("old: ", repRate)
-			algo.GeomAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
-			//fmt.Println("new: ", repRate)
-		//Exponential Average Algo
-		case glob.EMWAAverageAlg:
-			//fmt.Println("old: ", repRate)
-			algo.EMWAAverageAlgo(&thrList, &repRate, exponentialRatio, 3, thr, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+			// to calculate throughtput and select the repRate from it (in algorithm.go)
+			switch adapt {
+			//Conventional Algo
+			case glob.ConventionalAlg:
+				//fmt.Println("old: ", repRate)
+				algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+				//fmt.Println("new: ", repRate)
+				//Harmonic Mean Algo
+			case glob.ElasticAlg:
+				//fmt.Println("old repRate index: ", repRate)
+				//fmt.Println("old bandwithList[repRate]", bandwithList[repRate])
+				algo.ElasticAlgo(&thrList, thr, deliveryTime, maxBuffer, &repRate, bandwithList, &staticAlgParameter, bufferLevel, kP, kI, lowestMPDrepRateIndex[mimeTypeIndex])
+				//fmt.Println("new repRate index: ", repRate)
+				//fmt.Println("new bandwithList[repRate]", bandwithList[repRate])
+				//fmt.Println("elastic segmentNumber: ", segmentNumber)
+				//fmt.Println("segURL: ", segURL)
+			//Progressive Algo
+			case glob.ProgressiveAlg:
+				// fmt.Println("old: ", repRate)
+				algo.Conventional(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+				// fmt.Println("new: ", repRate)
+			//Logistic Algo
+			case glob.LogisticAlg:
+				// fmt.Println("old: ", repRate)
+				algo.Logistic(&thrList, thr, &repRate, bandwithList, bufferLevel,
+					highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], glob.DebugFile, debugLog,
+					maxBufferLevel)
+				// fmt.Println("new: ", repRate)
+				logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "reprate returned: "+strconv.Itoa(repRate))
+			//Mean Average Algo
+			case glob.MeanAverageAlg:
+				//fmt.Println("old: ", repRate)
+				algo.MeanAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+				//fmt.Println("new: ", repRate)
+			//Geometric Average Algo
+			case glob.GeomAverageAlg:
+				//fmt.Println("old: ", repRate)
+				algo.GeomAverageAlgo(&thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+				//fmt.Println("new: ", repRate)
+			//Exponential Average Algo
+			case glob.EMWAAverageAlg:
+				//fmt.Println("old: ", repRate)
+				algo.EMWAAverageAlgo(&thrList, &repRate, exponentialRatio, 3, thr, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
 
-		case glob.ArbiterAlg:
+			case glob.ArbiterAlg:
 
-			repRate = algo.CalculateSelectedIndexArbiter(thr, segmentDuration*1000, segmentNumber, maxBufferLevel,
-				repRate, &thrList, streamDuration, mpdList[mpdListIndex], currentURL,
-				mimeTypes[mimeTypeIndex], segmentNumber, baseURL, debugLog, deliveryTime, bufferLevel,
-				highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList,
-				segSize, quicBool, useTestbedBool)
-			//fmt.Println("new: ", repRate)
-		case glob.BBAAlg:
-			//fmt.Println("segDur: ", segmentDuration*1000)
-			//fmt.Println("index rate: ", repRate)
-			//fmt.Println("baseURL: ", baseURL)
-			//fmt.Println("downloadDurationLastSegment: ", deliveryTime)
-			//fmt.Println("maxStreamDuration: ", streamDuration)
-			//fmt.Println("bufferLevel: ", bufferLevel)
-			//fmt.Println("")
+				repRate = algo.CalculateSelectedIndexArbiter(thr, segmentDuration*1000, segmentNumber, maxBufferLevel,
+					repRate, &thrList, streamDuration, mpdList[mpdListIndex], currentURL,
+					mimeTypes[mimeTypeIndex], segmentNumber, baseURL, debugLog, deliveryTime, bufferLevel,
+					highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList,
+					segSize, quicBool, useTestbedBool)
+				//fmt.Println("new: ", repRate)
+			case glob.BBAAlg:
+				//fmt.Println("segDur: ", segmentDuration*1000)
+				//fmt.Println("index rate: ", repRate)
+				//fmt.Println("baseURL: ", baseURL)
+				//fmt.Println("downloadDurationLastSegment: ", deliveryTime)
+				//fmt.Println("maxStreamDuration: ", streamDuration)
+				//fmt.Println("bufferLevel: ", bufferLevel)
+				//fmt.Println("")
 
-			repRate = algo.CalculateSelectedIndexBba(thr, segmentDuration*1000, segmentNumber, maxBufferLevel,
-				repRate, &thrList, streamDuration, mpdList[mpdListIndex], currentURL,
-				mimeTypes[mimeTypeIndex], segmentNumber, baseURL, debugLog, deliveryTime, bufferLevel,
-				highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, quicBool, useTestbedBool)
+				repRate = algo.CalculateSelectedIndexBba(thr, segmentDuration*1000, segmentNumber, maxBufferLevel,
+					repRate, &thrList, streamDuration, mpdList[mpdListIndex], currentURL,
+					mimeTypes[mimeTypeIndex], segmentNumber, baseURL, debugLog, deliveryTime, bufferLevel,
+					highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, quicBool, useTestbedBool)
 
-		case glob.TestAlg:
-			//fmt.Println("")
+			case glob.TestAlg:
+				//fmt.Println("")
 
-		case glob.MeanAverageXLAlg:
-			//fmt.Println("old: ", repRate)
-			algo.MeanAverageXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
-		case glob.MeanAverageRecentXLAlg:
-			//fmt.Println("old: ", repRate)
-			algo.MeanAverageRecentXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
-		case glob.BB1AAlg_AV:
-			repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
-		}
-		logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
+			case glob.MeanAverageXLAlg:
+				//fmt.Println("old: ", repRate)
+				algo.MeanAverageXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+			case glob.MeanAverageRecentXLAlg:
+				//fmt.Println("old: ", repRate)
+				algo.MeanAverageRecentXLAlgo(accountant, &thrList, thr, &repRate, bandwithList, lowestMPDrepRateIndex[mimeTypeIndex])
+			case glob.BB1AAlg_AV:
+				repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
+			case glob.BB1AAlg_AVXL:
+				repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
 
-		postRepRate := repRate
-		if preRepRate != postRepRate {
-			from := abrqlog.NewRepresentation()
-			from.ID = strconv.Itoa(preRepRate)
-			from.Bitrate = int64(bandwithList[preRepRate] / glob.Conversion1000)
-			to := abrqlog.NewRepresentation()
-			to.ID = strconv.Itoa(postRepRate)
-			to.Bitrate = int64(bandwithList[postRepRate] / glob.Conversion1000)
-			abrqlog.MainTracer.Switch(mimeTypesMediaType[mimeTypeIndex], from, to)
-		}
+			}
+			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
 
-		//Increase the segment number
-		segmentNumber++
+			postRepRate := repRate
+			if preRepRate != postRepRate {
+				from := abrqlog.NewRepresentation()
+				from.ID = strconv.Itoa(preRepRate)
+				from.Bitrate = int64(bandwithList[preRepRate] / glob.Conversion1000)
+				to := abrqlog.NewRepresentation()
+				to.ID = strconv.Itoa(postRepRate)
+				to.Bitrate = int64(bandwithList[postRepRate] / glob.Conversion1000)
+				abrqlog.MainTracer.Switch(mimeTypesMediaType[mimeTypeIndex], from, to)
+			}
 
-		// break out if we have downloaded all of our segments
-		if segmentDurationTotal+(segmentDuration*glob.Conversion1000) > streamDuration {
-			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "We have downloaded all segments at the end of the streamLoop - segment total: "+strconv.Itoa(segmentDurationTotal)+"  current segment duration: "+strconv.Itoa(segmentDuration*glob.Conversion1000)+" gives a total of:  "+strconv.Itoa(segmentDurationTotal+(segmentDuration*glob.Conversion1000)))
+			//Increase the segment number
+			segmentNumber++
 
-			if mimeTypeIndex == len(mimeTypes)-1 {
-				// save the current log
-				streamStructs[mimeTypeIndex].MapSegmentLogPrintout = mapSegmentLogPrintout
-				// get the logs for all adaptationSets
-				for thisMimeTypeIndex := range mimeTypes {
-					mapSegmentLogPrintouts = append(mapSegmentLogPrintouts, streamStructs[thisMimeTypeIndex].MapSegmentLogPrintout)
+			// break out if we have downloaded all of our segments
+			if segmentDurationTotal+(segmentDuration*glob.Conversion1000) > streamDuration {
+				logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "We have downloaded all segments at the end of the streamLoop - segment total: "+strconv.Itoa(segmentDurationTotal)+"  current segment duration: "+strconv.Itoa(segmentDuration*glob.Conversion1000)+" gives a total of:  "+strconv.Itoa(segmentDurationTotal+(segmentDuration*glob.Conversion1000)))
+
+				if mimeTypeIndex == len(mimeTypes)-1 {
+					// save the current log
+					streamStructs[mimeTypeIndex].MapSegmentLogPrintout = mapSegmentLogPrintout
+					// get the logs for all adaptationSets
+					for thisMimeTypeIndex := range mimeTypes {
+						mapSegmentLogPrintouts = append(mapSegmentLogPrintouts, streamStructs[thisMimeTypeIndex].MapSegmentLogPrintout)
+					}
+
+					playhead := abrqlog.NewPlayheadStatus()
+					playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+					abrqlog.MainTracer.EndStream(playhead)
+
+					return segmentNumber, mapSegmentLogPrintouts
 				}
-
-				playhead := abrqlog.NewPlayheadStatus()
-				playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
-				abrqlog.MainTracer.EndStream(playhead)
-
-				return segmentNumber, mapSegmentLogPrintouts
 			}
+
+			// save info for the next segment
+			streaminfo := http.StreamStruct{
+				SegmentNumber:         segmentNumber,
+				CurrentURL:            OriginalURL,
+				InitBuffer:            initBuffer,
+				MaxBuffer:             maxBuffer,
+				CodecName:             codecName,
+				Codec:                 codec,
+				UrlString:             urlString,
+				UrlInput:              urlInput,
+				MpdList:               mpdList,
+				Adapt:                 adapt,
+				MaxHeight:             maxHeight,
+				IsByteRangeMPD:        isByteRangeMPD,
+				StartTime:             startTime,
+				NextRunTime:           nextRunTime,
+				ArrivalTime:           arrivalTime,
+				OldMPDIndex:           oldMPDIndex,
+				NextSegmentNumber:     nextSegmentNumber,
+				Hls:                   hls,
+				HlsBool:               hlsBool,
+				MapSegmentLogPrintout: mapSegmentLogPrintout,
+				StreamDuration:        streamDuration,
+				StreamSpeed:           streamSpeed,
+				ExtendPrintLog:        extendPrintLog,
+				HlsUsed:               hlsUsed,
+				BufferLevel:           bufferLevel,
+				SegmentDurationTotal:  segmentDurationTotal,
+				Quic:                  quic,
+				QuicBool:              quicBool,
+				BaseURL:               OriginalBaseURL,
+				DebugLog:              debugLog,
+				AudioContent:          audioContent,
+				RepRate:               repRate,
+				BandwithList:          bandwithList,
+				Profile:               profile,
+			}
+			streamStructs[mimeTypeIndex] = streaminfo
+
+			bufferStats := abrqlog.NewBufferStats()
+			bufferStats.PlayoutTime = time.Duration(bufferLevel) * time.Millisecond
+			bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
+			abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
+				bufferStats)
+
+			playhead := abrqlog.NewPlayheadStatus()
+			playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
+			abrqlog.MainTracer.PlayheadProgress(playhead)
 		}
-
-		// save info for the next segment
-		streaminfo := http.StreamStruct{
-			SegmentNumber:         segmentNumber,
-			CurrentURL:            OriginalURL,
-			InitBuffer:            initBuffer,
-			MaxBuffer:             maxBuffer,
-			CodecName:             codecName,
-			Codec:                 codec,
-			UrlString:             urlString,
-			UrlInput:              urlInput,
-			MpdList:               mpdList,
-			Adapt:                 adapt,
-			MaxHeight:             maxHeight,
-			IsByteRangeMPD:        isByteRangeMPD,
-			StartTime:             startTime,
-			NextRunTime:           nextRunTime,
-			ArrivalTime:           arrivalTime,
-			OldMPDIndex:           oldMPDIndex,
-			NextSegmentNumber:     nextSegmentNumber,
-			Hls:                   hls,
-			HlsBool:               hlsBool,
-			MapSegmentLogPrintout: mapSegmentLogPrintout,
-			StreamDuration:        streamDuration,
-			StreamSpeed:           streamSpeed,
-			ExtendPrintLog:        extendPrintLog,
-			HlsUsed:               hlsUsed,
-			BufferLevel:           bufferLevel,
-			SegmentDurationTotal:  segmentDurationTotal,
-			Quic:                  quic,
-			QuicBool:              quicBool,
-			BaseURL:               OriginalBaseURL,
-			DebugLog:              debugLog,
-			AudioContent:          audioContent,
-			RepRate:               repRate,
-			BandwithList:          bandwithList,
-			Profile:               profile,
-		}
-		streamStructs[mimeTypeIndex] = streaminfo
-
-		bufferStats := abrqlog.NewBufferStats()
-		bufferStats.PlayoutTime = time.Duration(bufferLevel) * time.Millisecond
-		bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
-		abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
-			bufferStats)
-
-		playhead := abrqlog.NewPlayheadStatus()
-		playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
-		abrqlog.MainTracer.PlayheadProgress(playhead)
 	}
 
 	// this gets the index for the next MPD and the segment number for the next chunk

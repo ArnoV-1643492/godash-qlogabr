@@ -93,6 +93,9 @@ const BBAAlg = "bba"
 // Arno Verstraete's BBA1
 const BB1AAlg_AV = "bba1"
 
+// Cross-layer version
+const BB1AAlg_AVXL = "bba1XL"
+
 // TestAlg : test constants for our algorithms
 const TestAlg = "test"
 

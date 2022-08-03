@@ -24,6 +24,7 @@ package http
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
@@ -243,7 +244,7 @@ func GetHTTPClient(quicBool bool, debugFile string, debugLog bool, useTestbedBoo
 // * get the response body of the url
 // * calculate the rtt
 // * return the response body and the rtt
-func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, quicBool bool, debugFile string, debugLog bool, useTestbedBool bool, returnContentLengthOnly bool) (io.ReadCloser, time.Duration, string, int) {
+func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, quicBool bool, debugFile string, debugLog bool, useTestbedBool bool, returnContentLengthOnly bool, ctx context.Context) (io.ReadCloser, time.Duration, string, int, int) {
 
 	var client *http.Client
 	var err error
@@ -355,6 +356,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	// determine the rtt for this segment
 	start := time.Now()
 	if quicBool {
+		req.WithContext(ctx)
 		resp, err = client.Do(req)
 	} else {
 		//request the URL using the client
@@ -377,6 +379,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 
 	// get protocol version
 	protocol := resp.Proto
+	status := resp.StatusCode
 
 	logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "URL is : "+url)
 	logging.DebugPrint(debugFile, debugLog, "DEBUG: ", "Protocol is : "+protocol)
@@ -392,7 +395,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	//fmt.Println("len : ", resp.ContentLength)
 
 	// return the response body
-	return resp.Body, rtt, protocol, contentLen
+	return resp.Body, rtt, protocol, contentLen, status
 
 }
 
@@ -551,14 +554,17 @@ func GetURL(url string, isByteRangeMPD bool, startRange int, endRange int, quicB
 	}
 	abrqlog.MainTracer.Request(abrqlog.MediaTypeOther, url, byteRangeString)
 
+	ctx2 := context.Background()
+
 	// get the response body and rtt for this url
-	responseBody, rtt, protocol, _ := getURLBody(url, isByteRangeMPD, startRange, endRange, quicBool, debugFile, debugLog, useTestbedBool, false)
+	responseBody, rtt, protocol, _, status := getURLBody(url, isByteRangeMPD, startRange, endRange, quicBool, debugFile, debugLog, useTestbedBool, false, ctx2)
 
 	// Lets read from the http stream and not create a file to store the body
 	body, err := ioutil.ReadAll(responseBody)
 	//bodyString := string(body)
 	if err != nil {
 		fmt.Println("Unable to read from url")
+		fmt.Println("Statuscode:", status)
 		abrqlog.MainTracer.AbortRequest(url)
 		// stop the app
 		utils.StopApp()
@@ -614,7 +620,8 @@ func JoinURL(baseURL string, append string, debugLog bool) string {
  */
 func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteRangeMPD bool, startRange int, endRange int,
 	segmentNumber int, segmentDuration int, addSegDuration bool, quicBool bool, debugFile string, debugLog bool,
-	useTestbedBool bool, repRate int, saveFilesBool bool, AudioByteRange bool, profile string, mediaType abrqlog.MediaType) (time.Duration, int, string, string, float64) {
+	useTestbedBool bool, repRate int, saveFilesBool bool, AudioByteRange bool, profile string, mediaType abrqlog.MediaType,
+	ctx context.Context) (time.Duration, int, string, string, float64, int) {
 
 	// create the string where we want to save this file
 	var createFile string
@@ -654,7 +661,7 @@ func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteR
 	abrqlog.MainTracer.Request(mediaType, urlHeaderString, byteRangeString)
 
 	//request the URL with GET
-	body, rtt, protocol, _ := getURLBody(urlHeaderString, isByteRangeMPD, startRange, endRange, quicBool, debugFile, debugLog, useTestbedBool, false)
+	body, rtt, protocol, _, status := getURLBody(urlHeaderString, isByteRangeMPD, startRange, endRange, quicBool, debugFile, debugLog, useTestbedBool, false, ctx)
 
 	// read from the buffer
 	var buf bytes.Buffer
@@ -745,7 +752,7 @@ func GetFile(currentURL string, fileBaseURL string, fileLocation string, isByteR
 	// close the body connection
 	body.Close()
 
-	return rtt, segSize, protocol, createFile, kbpsFloat
+	return rtt, segSize, protocol, createFile, kbpsFloat, status
 }
 
 // GetFileProgressively :
