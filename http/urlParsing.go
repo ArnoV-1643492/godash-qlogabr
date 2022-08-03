@@ -356,7 +356,7 @@ func getURLBody(url string, isByteRangeMPD bool, startRange int, endRange int, q
 	// determine the rtt for this segment
 	start := time.Now()
 	if quicBool {
-		req.WithContext(ctx)
+		req = req.WithContext(ctx)
 		resp, err = client.Do(req)
 	} else {
 		//request the URL using the client
