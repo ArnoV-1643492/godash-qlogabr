@@ -36,10 +36,11 @@ type CrossLayerAccountant struct {
 func (a *CrossLayerAccountant) InitialisePredictor() {
 	fmt.Println("Stall prediction enabled")
 	a.predictionWindow = 30
-	a.predictStall = true
+	a.predictStall = false
 }
 
 func (a *CrossLayerAccountant) SegmentStart_predictStall(segDuration_ms int, repLevel_kbps int, currBufferLevel int, cancel context.CancelFunc, aborted *bool) {
+	a.predictStall = true
 	a.m_cancel = cancel
 	a.m_aborted = aborted
 	a.StartTiming()
@@ -212,6 +213,7 @@ func (a *CrossLayerAccountant) StartTiming() {
 
 // Should be called when we have received an entire segment
 func (a *CrossLayerAccountant) StopTiming() int {
+	a.predictStall = false
 	if a.currentlyTiming {
 		currPassedTime := time.Since(a.currStartTime)
 		currPassedTime_ms := currPassedTime.Milliseconds()
