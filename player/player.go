@@ -174,8 +174,6 @@ var mimeTypesMediaType []abrqlog.MediaType
 
 var streamStructs []http.StreamStruct
 
-var inStartupPhase bool = true
-
 // Stream :
 /*
  * get the header file for the current video clip
@@ -949,7 +947,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		// some times we want to wait for an initial number of segments before stream begins
 		// no need to do asny printouts when we are replacing this chunk
 		// && !hlsReplaced
-		if initBuffer <= waitToPlayCounter && inStartupPhase {
+		if initBuffer <= waitToPlayCounter {
 
 			if !currently_playing {
 				currently_playing = true
@@ -1002,7 +1000,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		} else {
 			// If we reach this it means that the buffer has once reached the initial desired level, after this we never want to wait for it to fill up again before we start playing
-			inStartupPhase = false
+			//inStartupPhase = false
 			// add to the current buffer before we start to play
 			bufferLevel += (segmentDuration * glob.Conversion1000)
 			// increment the waitToPlayCounter
