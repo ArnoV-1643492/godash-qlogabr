@@ -864,6 +864,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		fmt.Println(status, aborted)
 
 		if aborted {
+			time.Sleep(8 * time.Second)
 			// We will not restart abort detection because we do not want to abort again
 			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
 

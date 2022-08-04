@@ -136,6 +136,7 @@ func (a *CrossLayerAccountant) channelListenerThread() {
 				fmt.Println("CROSSLAYERBUFFERLEVEL", a.calculateCurrentBufferLevel(), time.Now().UnixMilli())
 				//fmt.Println(eventType)
 				packetReceivedPointer := details.(*qlog.EventPacketReceived)
+				fmt.Println("PACKETRECEIVED", int(packetReceivedPointer.Length))
 				//fmt.Println(packetReceivedPointer.Length)
 				a.mu.Lock()
 				a.throughputList = append(a.throughputList, int(packetReceivedPointer.Length))
