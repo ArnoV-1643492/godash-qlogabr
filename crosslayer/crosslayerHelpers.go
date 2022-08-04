@@ -35,7 +35,7 @@ type CrossLayerAccountant struct {
 
 func (a *CrossLayerAccountant) InitialisePredictor() {
 	fmt.Println("Stall prediction enabled")
-	a.predictionWindow = 70
+	a.predictionWindow = 20
 	a.predictStall = false
 }
 

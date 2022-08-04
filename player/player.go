@@ -915,7 +915,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		// some times we want to wait for an initial number of segments before stream begins
 		// no need to do asny printouts when we are replacing this chunk
 		// && !hlsReplaced
-		if initBuffer <= waitToPlayCounter {
+		if initBuffer <= waitToPlayCounter || currently_playing {
 
 			if !currently_playing {
 				currently_playing = true
