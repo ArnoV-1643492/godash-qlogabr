@@ -864,6 +864,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		fmt.Println(status, aborted)
 
 		if aborted {
+			// We will not restart abort detection because we do not want to abort again
+			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
+
 			// keep rep_rate within the index boundaries
 			// MISL - might cause problems
 			if repRate < highestMPDrepRateIndex[mimeTypeIndex] {
@@ -898,8 +901,6 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			}
 
 			ctxaborted := context.Background()
-			// We will not restart abort detection because we do not want to abort again
-			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
 
 			// Start Time of this segment
 			fmt.Println("GETTINGSEGMENT", time.Now().UnixMilli())
