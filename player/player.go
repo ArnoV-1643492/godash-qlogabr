@@ -862,6 +862,39 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		fmt.Println(status, aborted)
 
 		if aborted {
+			// keep rep_rate within the index boundaries
+			// MISL - might cause problems
+			if repRate < highestMPDrepRateIndex[mimeTypeIndex] {
+				logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "Changing rep_rate index: from "+strconv.Itoa(repRate)+" to "+strconv.Itoa(highestMPDrepRateIndex[mimeTypeIndex]))
+				repRate = highestMPDrepRateIndex[mimeTypeIndex]
+			}
+
+			// get the segment
+			if isByteRangeMPD {
+				segURL, startRange, endRange = http.GetNextByteRangeURL(mpdList[mpdListIndex], segmentNumber, repRate, mimeTypes[mimeTypeIndex])
+				logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "byte start range: "+strconv.Itoa(startRange))
+				logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "byte end range: "+strconv.Itoa(endRange))
+			} else {
+				segURL = http.GetNextSegment(mpdList[mpdListIndex], segmentNumber, repRate, mimeTypes[mimeTypeIndex])
+			}
+			logging.DebugPrint(glob.DebugFile, debugLog, "DEBUG: ", "current segment URL: "+segURL)
+
+			// Collaborative Code - Start
+			OriginalURL = currentURL
+			OriginalBaseURL = baseURL
+			baseJoined := baseURL + segURL
+			urlHeaderString := http.JoinURL(currentURL, baseURL+segURL, debugLog)
+			if Noden.ClientName != glob.CollabPrintOff && Noden.ClientName != "" {
+				currentURL = Noden.Search(urlHeaderString, segmentDuration, true, profile)
+
+				logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "current URL joined: "+currentURL)
+				currentURL = strings.Split(currentURL, "::")[0]
+				logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "current URL joined: "+currentURL)
+				urlSplit := strings.Split(currentURL, "/")
+				logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: ", "current URL joined: "+urlSplit[len(urlSplit)-1])
+				baseJoined = urlSplit[len(urlSplit)-1]
+			}
+
 			ctxaborted := context.Background()
 			// We will not restart abort detection because we do not want to abort again
 			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
