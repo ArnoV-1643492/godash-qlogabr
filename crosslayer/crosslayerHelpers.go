@@ -122,8 +122,6 @@ func (a *CrossLayerAccountant) calculateCurrentBufferLevel() int {
 		level = 0
 	}
 
-	fmt.Println("CROSSLAYERBUFFERLEVEL", level, time.Now().UnixMilli())
-
 	return level
 }
 
@@ -135,6 +133,7 @@ func (a *CrossLayerAccountant) channelListenerThread() {
 			details := msg.GetEventDetails()
 			eventType := details.EventType()
 			if eventType == "EventPacketReceived" {
+				fmt.Println("CROSSLAYERBUFFERLEVEL", a.calculateCurrentBufferLevel(), time.Now().UnixMilli())
 				//fmt.Println(eventType)
 				packetReceivedPointer := details.(*qlog.EventPacketReceived)
 				//fmt.Println(packetReceivedPointer.Length)

@@ -814,6 +814,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		var status int
 		fmt.Println("CURRSEGMENTNUMBER", segmentNumber)
 
+		fmt.Println("GETTINGSEGMENT", time.Now().UnixMilli())
+
 		// Download the segment - add the segment duration to the file name
 		switch adapt {
 		case glob.ConventionalAlg:
@@ -900,6 +902,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
 
 			// Start Time of this segment
+			fmt.Println("GETTINGSEGMENT", time.Now().UnixMilli())
 			currentTime = time.Now()
 			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctxaborted)
 
