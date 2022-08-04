@@ -861,88 +861,20 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 
 		fmt.Println(status, aborted)
 
-		/*if aborted {
-			fmt.Println("ABORTED", status)
-
-			bufferLevel = utils.Max(bufferLevel-int(float64(thisRunTimeVal)*streamSpeed), 0)
-
-			// calculate the throughtput (we get the segSize while downloading the file)
-			// multiple segSize by 8 to get bits and not bytes
-			//thr := algo.CalculateThroughtput(segSize*8, deliveryTime)
-
-			preRepRate := repRate
-
-			// We are testing abortion detection only on BBA_AV right now, so no need to switch over all algorithms to calculate the next representation
-			//repRate = algo.BBA(bufferLevel, maxBufferLevel, highestMPDrepRateIndex[mimeTypeIndex], lowestMPDrepRateIndex[mimeTypeIndex], bandwithList, segmentDuration*1000, debugLog, glob.DebugFile, &thrList, thr)
+		if aborted {
+			ctxaborted := context.Background()
+			// We will not restart abort detection because we do not want to abort again
 			repRate = lowestMPDrepRateIndex[mimeTypeIndex]
 
-			fmt.Println("LOWESTREPRATE", strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
+			// Start Time of this segment
+			currentTime = time.Now()
+			rtt, segSize, protocol, segmentFileName, P1203Header, status = http.GetFile(currentURL, baseJoined, fileDownloadLocation, isByteRangeMPD, startRange, endRange, segmentNumber, segmentDuration, true, quicBool, glob.DebugFile, debugLog, useTestbedBool, repRate, saveFilesBool, AudioByteRange, profile, mimeTypesMediaType[mimeTypeIndex], ctxaborted)
 
-			logging.DebugPrint(glob.DebugFile, debugLog, "\nDEBUG: After an abort, ", adapt+" has choosen rep_Rate "+strconv.Itoa(repRate)+" @ a rate of "+strconv.Itoa(bandwithList[repRate]/glob.Conversion1000))
-
-			postRepRate := repRate
-			if preRepRate != postRepRate {
-				from := abrqlog.NewRepresentation()
-				from.ID = strconv.Itoa(preRepRate)
-				from.Bitrate = int64(bandwithList[preRepRate] / glob.Conversion1000)
-				to := abrqlog.NewRepresentation()
-				to.ID = strconv.Itoa(postRepRate)
-				to.Bitrate = int64(bandwithList[postRepRate] / glob.Conversion1000)
-				abrqlog.MainTracer.Switch(mimeTypesMediaType[mimeTypeIndex], from, to)
-			}
-
-			// save info for the next segment
-			streaminfo := http.StreamStruct{
-				SegmentNumber:         segmentNumber,
-				CurrentURL:            OriginalURL,
-				InitBuffer:            initBuffer,
-				MaxBuffer:             maxBuffer,
-				CodecName:             codecName,
-				Codec:                 codec,
-				UrlString:             urlString,
-				UrlInput:              urlInput,
-				MpdList:               mpdList,
-				Adapt:                 adapt,
-				MaxHeight:             maxHeight,
-				IsByteRangeMPD:        isByteRangeMPD,
-				StartTime:             startTime,
-				NextRunTime:           nextRunTime,
-				ArrivalTime:           arrivalTime,
-				OldMPDIndex:           oldMPDIndex,
-				NextSegmentNumber:     nextSegmentNumber,
-				Hls:                   hls,
-				HlsBool:               hlsBool,
-				MapSegmentLogPrintout: mapSegmentLogPrintout,
-				StreamDuration:        streamDuration,
-				StreamSpeed:           streamSpeed,
-				ExtendPrintLog:        extendPrintLog,
-				HlsUsed:               hlsUsed,
-				BufferLevel:           bufferLevel,
-				SegmentDurationTotal:  segmentDurationTotal,
-				Quic:                  quic,
-				QuicBool:              quicBool,
-				BaseURL:               OriginalBaseURL,
-				DebugLog:              debugLog,
-				AudioContent:          audioContent,
-				RepRate:               repRate,
-				BandwithList:          bandwithList,
-				Profile:               profile,
-			}
-			streamStructs[mimeTypeIndex] = streaminfo
-
-			streamStructs[mimeTypeIndex] = streaminfo
-
-			bufferStats := abrqlog.NewBufferStats()
-			bufferStats.PlayoutTime = time.Duration(bufferLevel) * time.Millisecond
-			bufferStats.MaxTime = time.Duration(streamStructs[mimeTypeIndex].MaxBuffer) * time.Second
-			abrqlog.MainTracer.UpdateBufferOccupancy(mimeTypesMediaType[mimeTypeIndex],
-				bufferStats)
-
-			playhead := abrqlog.NewPlayheadStatus()
-			playhead.PlayheadTime = time.Duration(playPosition) * time.Millisecond
-			abrqlog.MainTracer.PlayheadProgress(playhead)
-
-		} else {*/
+			// arrival and delivery times for this segment
+			arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+			deliveryTime = int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
+			thisRunTimeVal = int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+		}
 
 		// some times we want to wait for an initial number of segments before stream begins
 		// no need to do asny printouts when we are replacing this chunk
