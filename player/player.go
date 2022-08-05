@@ -855,7 +855,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 		arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
 		deliveryTime := int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
 		thisRunTimeVal := int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
-
+		prevNextRunTime := nextRunTime
 		nextRunTime = time.Now()
 
 		//fmt.Println("deliveryTime: ", deliveryTime)
@@ -915,7 +915,9 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			// arrival and delivery times for this segment
 			arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
 			deliveryTime = int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
-			thisRunTimeVal = int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+			thisRunTimeVal = int(time.Since(prevNextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+
+			nextRunTime = time.Now()
 		} else {
 			fmt.Println("SEGMENTARRIVED", bandwithList[repRate], time.Now().UnixMilli())
 		}
