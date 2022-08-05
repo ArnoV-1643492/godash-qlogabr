@@ -31,6 +31,7 @@ type CrossLayerAccountant struct {
 	time_atStartOfSegment                     time.Time
 	m_cancel                                  context.CancelFunc // Is called when the HTTP request needs to be cancelled
 	m_aborted                                 *bool
+	m_maxBuffer_ms                            int
 }
 
 func (a *CrossLayerAccountant) InitialisePredictor() {
@@ -39,10 +40,11 @@ func (a *CrossLayerAccountant) InitialisePredictor() {
 	a.predictStall = false
 }
 
-func (a *CrossLayerAccountant) SegmentStart_predictStall(segDuration_ms int, repLevel_kbps int, currBufferLevel int, cancel context.CancelFunc, aborted *bool) {
+func (a *CrossLayerAccountant) SegmentStart_predictStall(segDuration_ms int, repLevel_kbps int, currBufferLevel int, cancel context.CancelFunc, aborted *bool, maxBuffer_ms int) {
 	a.predictStall = true
 	a.m_cancel = cancel
 	a.m_aborted = aborted
+	a.m_maxBuffer_ms = maxBuffer_ms
 	a.StartTiming()
 	a.bufferLevel_atStartOfSegment_Milliseconds = currBufferLevel
 	a.time_atStartOfSegment = time.Now()
@@ -101,7 +103,8 @@ func (a *CrossLayerAccountant) stallPredictor() {
 			// Time it will take in ms to download the remaining bits at this rate
 			requiredTime_ms := bitsToDownload / windowBitrate
 
-			if requiredTime_ms > a.calculateCurrentBufferLevel() {
+			level := a.calculateCurrentBufferLevel()
+			if requiredTime_ms > level && float64(level) < 0.10*float64(a.m_maxBuffer_ms) {
 				// Report stall prediction
 				fmt.Println("STALLPREDICTOR ", time.Now().UnixMilli())
 				*a.m_aborted = true
