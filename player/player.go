@@ -916,6 +916,8 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			arrivalTime = int(time.Since(startTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
 			deliveryTime = int(time.Since(currentTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000)) //Time in milliseconds
 			thisRunTimeVal = int(time.Since(nextRunTime).Nanoseconds() / (glob.Conversion1000 * glob.Conversion1000))
+		} else {
+			fmt.Println("SEGMENTARRIVED", bandwithList[repRate], time.Now().UnixMilli())
 		}
 
 		// some times we want to wait for an initial number of segments before stream begins
