@@ -107,7 +107,7 @@ func (a *CrossLayerAccountant) stallPredictor() {
 
 			// bits 	:=    (kbps == bpms)   		 / ms
 			segmentSizeLowestThrough := (a.m_lowestBit_kbps) / a.segmentDuration_Milliseconds
-			requiredTimeLowestThrough_ms := segmentSizeLowestThrough
+			requiredTimeLowestThrough_ms := segmentSizeLowestThrough / windowBitrate
 
 			level := a.calculateCurrentBufferLevel()
 			if requiredTime_ms > level && float64(level) < 0.10*float64(a.m_maxBuffer_ms) && requiredTimeLowestThrough_ms < requiredTime_ms {
