@@ -807,7 +807,7 @@ func streamLoop(streamStructs []http.StreamStruct, Noden P2Pconsul.NodeUrl, acco
 			accountant.StartTiming()
 		case glob.BB1AAlg_AVXL:
 			if repRate != lowestMPDrepRateIndex[mimeTypeIndex] {
-				accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, &aborted, maxBuffer*glob.Conversion1000)
+				accountant.SegmentStart_predictStall(segmentDuration, bandwithList[repRate], bufferLevel, cancel, &aborted, maxBuffer*glob.Conversion1000, bandwithList[lowestMPDrepRateIndex[mimeTypeIndex]])
 			}
 		}
 
